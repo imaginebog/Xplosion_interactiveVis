@@ -13,15 +13,16 @@ TEMPLATE = app
 
 
 SOURCES += main.cpp\
-        mainwindow.cpp \
     glwidget.cpp \
     ModelOBJ.cpp \
     particleSystem.cpp \
     particles.cpp \
     render_particles.cpp \
-    shaders.cpp
+    shaders.cpp \
+    myglutthread.cpp \
+    flagwindow.cpp
 
-HEADERS  += mainwindow.h \
+HEADERS  += \
     glwidget.h \
     gnuplot-iostream.h \
     ModelOBJ.h \
@@ -29,9 +30,12 @@ HEADERS  += mainwindow.h \
     particleSystem.h \
     render_particles.h \
     shaders.h \
-    particleSystem.cuh
+    particleSystem.cuh \
+    myglutthread.h \
+    flagwindow.h
 
-FORMS    += mainwindow.ui
+FORMS    += \
+    flagwindow.ui
 
 OTHER_FILES +=  ./particleSystem_cuda.cu
 

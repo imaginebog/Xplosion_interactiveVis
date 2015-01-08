@@ -10,7 +10,7 @@
  */
 
 /*
- Particle system example with collisions using uniform grid
+ This project was based on Particle system example with collisions using uniform grid
 
  CUDA 2.1 SDK release 12/2008
  - removed atomic grid method, some optimization, added demo mode.
@@ -51,15 +51,8 @@
 #include "paramgl.h"
 #include "gnuplot-iostream.h"
 
-#include "mainwindow.h"
-#include <QApplication>
 
 #define DEFAULT_COLOR_CONFIG PATH_INI"/colores.config"
-
-#define MAX_EPSILON_ERROR 5.00f
-#define THRESHOLD         0.30f
-
-#define GRID_SIZE       64
 
 Gnuplot gp;
 
@@ -102,21 +95,10 @@ enum {
 
 uint numParticles = 0;
 uint3 gridSize;
-int numIterations = 0; // run until exit
+
 
 // simulation parameters
 float timestep = 0.5f;
-float damping = 1.0f;
-float gravity = 0.0003f;
-int iterations = 1;
-int ballr = 10;
-
-float collideSpring = 0.5f;
-;
-float collideDamping = 0.02f;
-;
-float collideShear = 0.1f;
-float collideAttraction = 0.0f;
 int rangeColor = 200;
 
 ParticleSystem *psystem = 0;
@@ -209,7 +191,6 @@ void colorConfig(string configFilePath) {
 				}
 				if (key.find("colormode") != -1) {
 
-					//posX = (float) ::atof(cell.c_str());
 					if (value.find("gradient") != -1) {
 						printf("gradient!!!");
 						psystem->setColorRangeMode(psystem->COLOR_GRADIENT);
@@ -313,6 +294,10 @@ void initSimulationSystem(uint3 gridSize, bool bUseOpenGL, string filePath) {
 
 void cleanup() {
 	sdkDeleteTimer(&timer);
+
+    if (psystem) {
+        delete psystem;
+    }
 }
 
 // initialize OpenGL
@@ -692,25 +677,25 @@ void resetView() {
 
 // transfrom vector by matrix
 void xform(float *v, float *r, GLfloat *m) {
-	r[0] = v[0] * m[0] + v[1] * m[4] + v[2] * m[8] + m[12];
-	r[1] = v[0] * m[1] + v[1] * m[5] + v[2] * m[9] + m[13];
-	r[2] = v[0] * m[2] + v[1] * m[6] + v[2] * m[10] + m[14];
+    r[0] = v[0] * m[0] + v[1] * m[4] + v[2] * m[8] + m[12];
+    r[1] = v[0] * m[1] + v[1] * m[5] + v[2] * m[9] + m[13];
+    r[2] = v[0] * m[2] + v[1] * m[6] + v[2] * m[10] + m[14];
 }
 
 // transform vector by transpose of matrix
 void ixform(float *v, float *r, GLfloat *m) {
-	r[0] = v[0] * m[0] + v[1] * m[1] + v[2] * m[2];
-	r[1] = v[0] * m[4] + v[1] * m[5] + v[2] * m[6];
-	r[2] = v[0] * m[8] + v[1] * m[9] + v[2] * m[10];
+    r[0] = v[0] * m[0] + v[1] * m[1] + v[2] * m[2];
+    r[1] = v[0] * m[4] + v[1] * m[5] + v[2] * m[6];
+    r[2] = v[0] * m[8] + v[1] * m[9] + v[2] * m[10];
 }
 
 void ixformPoint(float *v, float *r, GLfloat *m) {
-	float x[4];
-	x[0] = v[0] - m[12];
-	x[1] = v[1] - m[13];
-	x[2] = v[2] - m[14];
-	x[3] = 1.0f;
-	ixform(x, r, m);
+    float x[4];
+    x[0] = v[0] - m[12];
+    x[1] = v[1] - m[13];
+    x[2] = v[2] - m[14];
+    x[3] = 1.0f;
+    ixform(x, r, m);
 }
 
 void motion(int x, int y) {
@@ -967,10 +952,6 @@ void special(int k, int x, int y) {
 }
 
 void idle(void) {
-	if ((idleCounter++ > idleDelay) && (demoMode == false)) {
-		//        demoMode = true;
-		//        printf("Entering demo mode\n");
-	}
 
 	if (psystem->demoCutting) {
 		demoCounter++;
@@ -978,6 +959,7 @@ void idle(void) {
 
 			psystem->advanceCutter();
 			demoCounter = 0;
+            glutPostRedisplay();
 		}
 	}
 	if (playMode) {
@@ -986,11 +968,11 @@ void idle(void) {
 
 			psystem->forward();
 			playCounter = 0;
-		}
-
+            glutPostRedisplay();
+        }
 	}
 
-	glutPostRedisplay();
+
 }
 
 void initParams() {
@@ -1048,55 +1030,22 @@ int main(int argc, char **argv) {
 
 	printf("%s Starting...\n\n", sSDKsample);
 
-	uint gridDim = GRID_SIZE;
-	numIterations = 0;
 
-	if (argc > 1) {
-		printf("arguments!!");
+    if (checkCmdLineFlag(argc, (const char **) argv, "device")) {
+        printf("[%s]\n", argv[0]);
+        printf("   Does not explicitly support -device=n in OpenGL mode\n");
+        printf(
+                "   To use -device=n, the sample must be running w/o OpenGL\n\n");
+        printf(" > %s -device=n -file=<*.bin>\n", argv[0]);
+        printf("exiting...\n");
+        exit(EXIT_SUCCESS);
+    }
 
-		if (checkCmdLineFlag(argc, (const char **) argv, "grid")) {
-			gridDim = getCmdLineArgumentInt(argc, (const char **) argv, "grid");
-		}
+    initGL(&argc, argv);
+    cudaGLInit(argc, argv);
 
-		if (checkCmdLineFlag(argc, (const char **) argv, "file")) {
-			getCmdLineArgumentString(argc, (const char **) argv, "file",
-					&g_refFile);
-			fpsLimit = frameCheckNumber;
-			numIterations = 1;
-		}
-	} else if (argc > 0) {
-		printf("1 argument!!");
-	}
 
-	gridSize.x = gridSize.y = gridSize.z = gridDim;
-	printf("grid: %d x %d x %d = %d cells\n", gridSize.x, gridSize.y,
-			gridSize.z, gridSize.x * gridSize.y * gridSize.z);
-
-	bool benchmark = checkCmdLineFlag(argc, (const char **) argv, "benchmark")
-			!= 0;
-
-	if (checkCmdLineFlag(argc, (const char **) argv, "i")) {
-		numIterations = getCmdLineArgumentInt(argc, (const char **) argv, "i");
-	}
-
-	if (g_refFile) {
-		cudaInit(argc, argv);
-	} else {
-		if (checkCmdLineFlag(argc, (const char **) argv, "device")) {
-			printf("[%s]\n", argv[0]);
-			printf("   Does not explicitly support -device=n in OpenGL mode\n");
-			printf(
-					"   To use -device=n, the sample must be running w/o OpenGL\n\n");
-			printf(" > %s -device=n -file=<*.bin>\n", argv[0]);
-			printf("exiting...\n");
-			exit(EXIT_SUCCESS);
-		}
-
-		initGL(&argc, argv);
-		cudaGLInit(argc, argv);
-	}
-
-	if (checkCmdLineFlag(argc, (const char **) argv, "datafile")) {
+    if (checkCmdLineFlag(argc, (const char **) argv, "datafile")) {//qcore arguments
 		char* pth;
 		getCmdLineArgumentString(argc, (const char **) argv, "datafile", &pth);
 		fflush(stdout);
@@ -1127,23 +1076,23 @@ int main(int argc, char **argv) {
 	fflush(stdout);
 
 	if (!g_refFile) {
-		initMenus();
+        initMenus();//ignore now (a lot of glut)
 	}
 
 
-	glutDisplayFunc(display);
-	glutReshapeFunc(reshape);
-	glutMouseFunc(mouse);
-	glutMotionFunc(motion);
-	glutKeyboardFunc(key);
-	glutSpecialFunc(special);
-	glutIdleFunc(idle);
+    glutDisplayFunc(display);//paint
+    glutReshapeFunc(reshape);//resize
+    glutMouseFunc(mouse);//pressevent, release event (pending scroll??)
+    glutMotionFunc(motion);//motion
+    glutKeyboardFunc(key);//don't know yet
+    glutSpecialFunc(special);//don't know yet
+    glutIdleFunc(idle);//override timerEvent
 
-	glutCloseFunc(cleanup);
+    glutCloseFunc(cleanup);//cleanup function in :~Widget
 
+    glutMainLoop();//no need (app.exec())
 
-
-	glutMainLoop();
+    printf("So here we go!");
 
 
     if (psystem) {
