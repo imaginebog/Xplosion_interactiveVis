@@ -19,7 +19,6 @@ SOURCES += main.cpp\
     particles.cpp \
     render_particles.cpp \
     shaders.cpp \
-    myglutthread.cpp \
     simului.cpp
 
 HEADERS  += \
