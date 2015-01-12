@@ -53,9 +53,7 @@
 #include "gnuplot-iostream.h"
 
 
-#include "flagwindow.h"
 #include <QApplication>
-#include "myglutthread.h"
 
 
 #define DEFAULT_COLOR_CONFIG PATH_INI"/colores.config"
