@@ -20,7 +20,8 @@ SOURCES += main.cpp\
     render_particles.cpp \
     shaders.cpp \
     myglutthread.cpp \
-    flagwindow.cpp
+    flagwindow.cpp \
+    simului.cpp
 
 HEADERS  += \
     glwidget.h \
@@ -32,10 +33,12 @@ HEADERS  += \
     shaders.h \
     particleSystem.cuh \
     myglutthread.h \
-    flagwindow.h
+    flagwindow.h \
+    simului.h
 
 FORMS    += \
-    flagwindow.ui
+    flagwindow.ui \
+    simului.ui
 
 OTHER_FILES +=  ./particleSystem_cuda.cu
 

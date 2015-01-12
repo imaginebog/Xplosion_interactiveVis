@@ -25,6 +25,7 @@
 #if defined (WIN32)
 #include <GL/wglew.h>
 #endif
+
 #if defined(__APPLE__) || defined(__MACOSX)
 #include <GLUT/glut.h>
 #ifndef glutCloseFunc
@@ -50,6 +51,11 @@
 #include "render_particles.h"
 #include "paramgl.h"
 #include "gnuplot-iostream.h"
+
+
+#include "flagwindow.h"
+#include <QApplication>
+#include "myglutthread.h"
 
 
 #define DEFAULT_COLOR_CONFIG PATH_INI"/colores.config"
@@ -94,7 +100,6 @@ enum {
 };
 
 uint numParticles = 0;
-uint3 gridSize;
 
 
 // simulation parameters
@@ -267,8 +272,8 @@ void colorConfig(string configFilePath) {
 	}
 
 }
-void initSimulationSystem(uint3 gridSize, bool bUseOpenGL, string filePath) {
-	psystem = new ParticleSystem(gridSize, bUseOpenGL);
+void initSimulationSystem(bool bUseOpenGL, string filePath) {
+    psystem = new ParticleSystem(bUseOpenGL);
 
 	if (filePath.empty())
 		psystem->setFileSource(DATAFILE_PATH);
@@ -307,13 +312,13 @@ void initGL(int *argc, char **argv) {
 	//	glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE);
 	glutInitWindowSize(width, height);
 	glutCreateWindow("Simulation");
-	glewInit();
+    glewInit();
 
-	if (!glewIsSupported(
-			"GL_VERSION_2_0 GL_VERSION_1_5 GL_ARB_multitexture GL_ARB_vertex_buffer_object")) {
-		fprintf(stderr, "Required OpenGL extensions missing.");
-		exit(EXIT_FAILURE);
-	}
+    if (!glewIsSupported(
+            "GL_VERSION_2_0 GL_VERSION_1_5 GL_ARB_multitexture GL_ARB_vertex_buffer_object")) {
+        fprintf(stderr, "Required OpenGL extensions missing.");
+        exit(EXIT_FAILURE);
+    }
 
 #if defined (WIN32)
 
@@ -738,7 +743,7 @@ void motion(int x, int y) {
 			v[0] = dx * translateSpeed;
 			v[1] = -dy * translateSpeed;
 			v[2] = 0.0f;
-			ixform(v, r, modelView);
+            ixform(v, r, modelView);
 			p.x += r[0];
 			p.y += r[1];
 			p.z += r[2];
@@ -747,7 +752,7 @@ void motion(int x, int y) {
 			v[0] = 0.0f;
 			v[1] = 0.0f;
 			v[2] = dy * translateSpeed;
-			ixform(v, r, modelView);
+            ixform(v, r, modelView);
 			p.x += r[0];
 			p.y += r[1];
 			p.z += r[2];
@@ -758,7 +763,7 @@ void motion(int x, int y) {
 			v[0] = dx * translateSpeed;
 			v[1] = -dy * translateSpeed;
 			v[2] = 0.0f;
-			ixform(v, r, modelView);
+            ixform(v, r, modelView);
 
 			//TODO no tiene en cuenta la direccion del arrastre con respecto a la posicion de la caja. De espaldas escala diferente a atras en perspectiva
 			float3 tamSel = psystem->getSelectSize();
@@ -1022,7 +1027,12 @@ void initMenus() {
 ////////////////////////////////////////////////////////////////////////////////
 // Program main
 ////////////////////////////////////////////////////////////////////////////////
-int main(int argc, char **argv) {
+int main2(int argc, char **argv) {
+
+    //MyGLutThread mythr(argc,argv);
+    //mythr.start();
+
+
 #if defined(__linux__)
 	setenv("DISPLAY", ":0", 0);
 #endif
@@ -1052,9 +1062,9 @@ int main(int argc, char **argv) {
 
 		printf("datafile: %s\n", pth);
 		fflush(stdout);
-		initSimulationSystem(gridSize, true, pth);
+        initSimulationSystem(true, pth);
 	} else
-		initSimulationSystem(gridSize, true, DATAFILE_PATH);
+        initSimulationSystem(true, DATAFILE_PATH);
 
 	if (checkCmdLineFlag(argc, (const char **) argv, "colorconfig")) {
 		char* pth;
@@ -1093,6 +1103,7 @@ int main(int argc, char **argv) {
     glutMainLoop();//no need (app.exec())
 
     printf("So here we go!");
+    fflush(stdout);
 
 
     if (psystem) {

@@ -1,13 +1,21 @@
-#include "flagwindow.h"
+#include "simului.h"
 #include <QApplication>
+#include "glwidget.h"
+#include <QtOpenGL/QGLFormat>
+#include <QOpenGLContext>
 
-int main3(int argc, char *argv[])
+int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
-    FlagWindow w;
-    //printf("Good!");
+    glutInit(&argc, argv);
+    GLWidget w;
+    w.setWindowTitle("Xplosion simulation");
     w.show();
-    //w2.show();
+
+    SimulUI wui;
+    wui.setWindowTitle("Panel de control");
+    wui.show();
+
 
     return a.exec();
 }

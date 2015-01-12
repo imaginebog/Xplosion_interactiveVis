@@ -21,6 +21,7 @@
 
 //custom
 #include "ModelOBJ.h"
+#include <QString>
 
 
 
@@ -39,7 +40,7 @@
 // Particle system class
 class ParticleSystem {
 public:
-	ParticleSystem(uint3 gridSize, bool bUseOpenGL);
+    ParticleSystem(bool bUseOpenGL);
 	~ParticleSystem();
 
 	bool clipped;
@@ -344,7 +345,6 @@ protected:
 		velocity* velocityPointer;
 	};
 
-	uint3 m_gridSize;
 	uint m_numGridCells;
 
 	StopWatchInterface *m_timer;

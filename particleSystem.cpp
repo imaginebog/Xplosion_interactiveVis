@@ -94,12 +94,13 @@ void ParticleSystem::setFileSource(string filePath) {
 	m_bInitialized = false;
 	loadSimulationData(filePath);
 	m_numParticles = tamMax;
+    printf("before initializing particles");
 	_initialize(m_numParticles);
 }
 
-ParticleSystem::ParticleSystem(uint3 gridSize, bool bUseOpenGL) :
+ParticleSystem::ParticleSystem(bool bUseOpenGL) :
 				m_bInitialized(false), m_bUseOpenGL(bUseOpenGL), m_numParticles(0), m_hPos(
-						0), m_hVel(0), m_dPos(0), m_gridSize(gridSize), m_timer(
+                        0), m_hVel(0), m_dPos(0), m_timer(
 								NULL), m_solverIterations(1), alpha(1), clipped(false), currentVariable(
 										0), m_numberHistogramIntervals(MAX_HISTOGRAM_INTERVALS), m_histogram(
 												0) {
@@ -107,8 +108,6 @@ ParticleSystem::ParticleSystem(uint3 gridSize, bool bUseOpenGL) :
 
 	gradientInitialColor = new float[3] { 1, 1, 0 }; //{1,1,0};//yellow default
 	gradientFinalColor = new float[3] { 1, 0, 0 }; //{1,0,0};//red default
-
-	m_numGridCells = m_gridSize.x * m_gridSize.y * m_gridSize.z;
 
 	//TODO set radius smarter
 	particleRadius = 1.0f / 640.0f * 3;
@@ -316,7 +315,7 @@ void ParticleSystem::_initialize(int numParticles) {
 	if (m_bUseOpenGL) {
 		//m_posVbo = createVBO(memSize);
 		printf("memsize:%d",memSize);
-		m_posVbo = createVBO(memSize*2);
+        m_posVbo = createVBO(memSize*2);
 		printf("posvbo created");
 			fflush(stdout);
 
@@ -730,6 +729,15 @@ inline float frand() {
 
 //TODO Refactor to generalize for more variables or different order
 void ParticleSystem::loadSimulationData(string fileP) {
+
+    try{
+        setlocale(LC_NUMERIC,"en_US");
+    }
+    catch(int ignore)
+    {
+
+    }
+
 	printf("iniciaCarga");
 	cout << fileP;
 	fflush(stdout);
@@ -738,8 +746,8 @@ void ParticleSystem::loadSimulationData(string fileP) {
 	yArray = (float*) malloc(MAX_CELLS * sizeof(float));
 	zArray = (float*) malloc(MAX_CELLS * sizeof(float));
 
-	float pressure, temperature, velMag, velX, velY, velZ, time, posX, posY,
-	posZ;
+    float pressure, temperature, velMag, velX, velY, velZ, time;
+    float posX, posY,posZ;
 	string wall;
 	xmax = 0, ymax = 0, zmax = 0, xmin = 0, ymin = 0, zmin = 0;
 	tmin = MAX_INT, tmax = -MAX_INT, pmin = MAX_INT, pmax = -MAX_INT, vmax =-MAX_INT, vmin=MAX_INT;
@@ -771,27 +779,30 @@ void ParticleSystem::loadSimulationData(string fileP) {
 		std::string cell;
 		int tempVar = 0;
 		while (std::getline(lineStream, cell, ',')) {
+            QString times(cell.c_str());
+            float cellvalue=times.toFloat();
 			switch (tempVar) {
 			case 0:
-				pressure = (float) ::atof(cell.c_str());
+                pressure = cellvalue;
 				break;
 			case 1:
-				temperature = (float) ::atof(cell.c_str());
+                temperature = cellvalue;
 				break;
 			case 3:
-				velMag = (float) ::atof(cell.c_str());
+                velMag = cellvalue;
 				break;
 			case 4:
-				velX = (float) ::atof(cell.c_str());
+                velX = cellvalue;
 				break;
 			case 5:
-				velY = (float) ::atof(cell.c_str());
+                velY = cellvalue;
 				break;
 			case 6:
-				velZ = (float) ::atof(cell.c_str());
+                velZ = cellvalue;
 				break;
 			case 7:
-				time = (float) ::atof(cell.c_str());
+                time=cellvalue;
+                //time = (float) ::atof(cell.c_str());
 				if (time != lasttime) {
 					lasttime = time;
 					frames[nframes].time = time;
@@ -816,13 +827,14 @@ void ParticleSystem::loadSimulationData(string fileP) {
 				}
 				break;
 			case 8:
-				posX = (float) ::atof(cell.c_str());
+                posX = cellvalue;
 				break;
 			case 9:
-				posY = (float) ::atof(cell.c_str());
+                posY = cellvalue;
+                fflush(stdout);
 				break;
 			case 10:
-				posZ = (float) ::atof(cell.c_str());
+                posZ = cellvalue;
 				break;
 			}
 			tempVar++;
@@ -851,23 +863,23 @@ void ParticleSystem::loadSimulationData(string fileP) {
 
 		//...
 		if (posX > xmax)
-			xmax = posX;
+            xmax = (float) posX;
 		else if (posX < xmin)
-			xmin = posX;
+            xmin = (float)posX;
 
 		if (posY > ymax)
-			ymax = posY;
+            ymax = (float)posY;
 		else if (posY < ymin)
-			ymin = posY;
+            ymin = (float)posY;
 
 		if (posZ > zmax)
-			zmax = posZ;
+            zmax = (float)posZ;
 		else if (posZ < zmin)
-			zmin = posZ;
+            zmin = (float)posZ;
 
-		xArray[tam] = posX;
-		yArray[tam] = posY;
-		zArray[tam] = posZ;
+        xArray[tam] = (float)posX;
+        yArray[tam] = (float)posY;
+        zArray[tam] = (float)posZ;
 		temp[tam] = temperature;
 		pressureArray[tam] = pressure;
 		velArray[tam].direction[0] = velX;
