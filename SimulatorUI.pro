@@ -30,7 +30,6 @@ HEADERS  += \
     render_particles.h \
     shaders.h \
     particleSystem.cuh \
-    myglutthread.h \
     simului.h
 
 FORMS    += \
