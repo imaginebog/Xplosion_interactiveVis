@@ -13,7 +13,7 @@ int main(int argc, char *argv[])
     w.show();
 
     SimulUI wui;
-    wui.setWindowTitle("Panel de control");
+    wui.setWindowTitle("Simulation dashboard");
     wui.show();
 
 

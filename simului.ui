@@ -342,20 +342,6 @@
       </property>
      </widget>
     </widget>
-    <zorder>verticalSlider</zorder>
-    <zorder>comboBox</zorder>
-    <zorder>pushButton_2</zorder>
-    <zorder>label_2</zorder>
-    <zorder>rbSpheres</zorder>
-    <zorder>rbPoints</zorder>
-    <zorder>rbFlatSpheres</zorder>
-    <zorder>rbVectors</zorder>
-    <zorder>scaleWidget</zorder>
-    <zorder>label</zorder>
-    <zorder>label_3</zorder>
-    <zorder>label_4</zorder>
-    <zorder>gbObj</zorder>
-    <zorder>gbObj</zorder>
    </widget>
    <widget class="QPushButton" name="pushButton">
     <property name="geometry">
@@ -755,6 +741,54 @@ border-color: navy;
       </widget>
      </item>
     </layout>
+   </widget>
+   <widget class="QGroupBox" name="groupBox_5">
+    <property name="geometry">
+     <rect>
+      <x>140</x>
+      <y>10</y>
+      <width>451</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>FreeSans</family>
+      <pointsize>12</pointsize>
+      <weight>75</weight>
+      <italic>true</italic>
+      <bold>true</bold>
+     </font>
+    </property>
+    <property name="title">
+     <string>Cursor mode:</string>
+    </property>
+    <widget class="QRadioButton" name="radioButton_4">
+     <property name="geometry">
+      <rect>
+       <x>140</x>
+       <y>0</y>
+       <width>71</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>View</string>
+     </property>
+    </widget>
+    <widget class="QRadioButton" name="radioButton_5">
+     <property name="geometry">
+      <rect>
+       <x>260</x>
+       <y>0</y>
+       <width>117</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Clipping tool</string>
+     </property>
+    </widget>
    </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
