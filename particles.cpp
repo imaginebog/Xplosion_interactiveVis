@@ -155,14 +155,14 @@ void refreshLegend()
 }
 
 void showHistogram() {
-	//TODO set color, set axis names, set title
 	float widthBar = psystem->width_histogram;
 	int boxwidth = (int) (widthBar * 0.9);
 	gp << "set boxwidth " << boxwidth << "\n";
-	gp << "set style fill solid 0.5\n";
-	gp << "set xlabel \"x\"\n";
+    gp << "set style fill solid 0.5\n";
+    gp << "set xlabel \"x\"\n";//TODO Set to current variable
 	gp << "set ylabel \"Frequency\"\n";
-	gp << "plot \"histog.dat\" using 1:2 smooth freq w boxes lc rgb\"green\" notitle\n";
+    gp << "set title \"Histogram\"\n";
+    gp << "plot \"histog.dat\" using 1:2:3 w boxes lc rgb variable notitle\n";
 	gp.flush();
 }
 

@@ -22,7 +22,7 @@
 //custom
 #include "ModelOBJ.h"
 #include <QString>
-
+#include <iomanip>
 
 
 #define MAX_CELLS	2500000
@@ -224,6 +224,7 @@ public:
 	void colorTemperature(int t, float* r);
 	void colorVariable(int t, float* r);
 	int colorVar(int t, float* r);/* return range*/
+    char* getColor(float valor);
 	void setFileSource(string filePath);
 	void update(float deltaTime);
 	void initDefaultData();
