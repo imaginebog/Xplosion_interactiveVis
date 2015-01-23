@@ -28,7 +28,7 @@
 #define MAX_CELLS	2500000
 
 //#define PATH_INI	"."
-#define PATH_INI	"../SimulatorUI"
+#define PATH_INI	"../tesis_ui"
 #define PATH_INI2	"/home/cxnv/workspace/Simulator"
 #define OBJ_PATH	PATH_INI"/data/models3d/volumen.obj"
 #define DATAFILE_PATH	PATH_INI"/data/datos.csv"

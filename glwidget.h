@@ -8,14 +8,6 @@
 #if defined (WIN32)
 #include <GL/wglew.h>
 #endif
-#if defined(__APPLE__) || defined(__MACOSX)
-#include <GLUT/glut.h>
-#ifndef glutCloseFunc
-#define glutCloseFunc glutWMCloseFunc
-#endif
-#else
-#include <GL/freeglut.h>
-#endif
 
 // CUDA runtime
 #include <cuda_runtime.h>
@@ -62,7 +54,7 @@ protected:
 private:
     Gnuplot gp;
 
-    uint width = 640, height = 480;
+    uint width = 1200, height = 960;
 
     char* datafilepath;
     char* colorconfigpath;

@@ -3,6 +3,9 @@
 #include <QMouseEvent>
 #include <QKeyEvent>
 
+#define MOUSE_DOWN 1
+#define MOUSE_UP 2
+
 
 extern "C" void cudaInit(int argc, char **argv);
 extern "C" void cudaGLInit(int argc, char **argv);
@@ -24,8 +27,6 @@ GLWidget::GLWidget(QWidget *parent) : QOpenGLWidget(parent)
     camera_rot_lag[0]=0;
     camera_rot_lag[1]=0;
     camera_rot_lag[2]=0;
-
-
 
 #if defined(__linux__)
     setenv("DISPLAY", ":0", 0);
@@ -84,13 +85,10 @@ void GLWidget::loadSimulationSystem()
 
 void GLWidget::initializeGL()//initGL
 {
-    //glutInit(argc, argv);
     //glutInitDisplayMode(GLUT_RGBA | GLUT_DEPTH | GLUT_DOUBLE);//TODO Check qt
-    //	glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE);
     //glutInitWindowSize(width, height);//TODO Check qt
-    //glutCreateWindow("Simulation");
 
-
+    reshape(size().width(),size().height());
     glewInit();
 
     if (!glewIsSupported(
@@ -114,15 +112,14 @@ void GLWidget::initializeGL()//initGL
 
     cudaGLInit(0, NULL);
 
-    //glutReportErrors();
     loadSimulationSystem();
 
 
 }
 
-void GLWidget::resizeGL(int width, int height)
+void GLWidget::resizeGL(int wid, int hei)
 {
-    reshape(width,height);
+    reshape(wid,hei);
 }
 
 void GLWidget::refreshLegend()
@@ -476,7 +473,8 @@ void GLWidget::paintGL() {//display()
 
     // view transform
     glMatrixMode(GL_MODELVIEW);
-    glViewport(0, 0, width, height);
+    int aje=width+height;
+    glViewport(0, 0, size().width(), size().height());
     glLoadIdentity();
 
     for (int c = 0; c < 3; ++c) {
@@ -485,7 +483,9 @@ void GLWidget::paintGL() {//display()
         camera_rot_lag[c] += (camera_rot[c] - camera_rot_lag[c]) * inertia;
     }
 
+    //glTranslatef(camera_trans_lag[0], camera_trans_lag[1], camera_trans_lag[0]);
     glTranslatef(camera_trans_lag[0], camera_trans_lag[1], camera_trans_lag[2]);
+    //TODO Solution:: calibrate axis 3 cuz wasn't working!!!
     glRotatef(camera_rot_lag[0], 1.0, 0.0, 0.0);
     glRotatef(camera_rot_lag[1], 0.0, 1.0, 0.0);
 
@@ -581,17 +581,17 @@ void GLWidget::reshape(int w, int h) {
 }
 void GLWidget::mousePressEvent(QMouseEvent *event)
 {
-    mouse(event->button()-1,GLUT_DOWN,event->x(),event->y(),event->modifiers());
+    mouse(event->button()-1,MOUSE_DOWN,event->x(),event->y(),event->modifiers());
 }
 void GLWidget::mouseReleaseEvent(QMouseEvent *event)
 {
-    mouse(event->button()-1,GLUT_UP,event->x(),event->y(),event->modifiers());
+    mouse(event->button()-1,MOUSE_UP,event->x(),event->y(),event->modifiers());
 }
 void GLWidget::mouse(int button, int state, int x, int y, Qt::KeyboardModifiers mods) {
 
-    if (state == GLUT_DOWN) {
+    if (state == MOUSE_DOWN) {
         buttonState |= 1 << button;
-    } else if (state == GLUT_UP) {
+    } else if (state == MOUSE_UP) {
         buttonState = 0;
     }
 
@@ -686,6 +686,8 @@ void GLWidget::motion(int x, int y) {
     switch (mode) {
     case M_VIEW:
         if (buttonState == 3) {
+            printf("zooming...");
+            fflush(stdout);
             // left+middle = zoom
             camera_trans[2] += (dy / 100.0f) * 0.5f * fabs(camera_trans[2]);
         } else if (buttonState & 2) {
@@ -977,28 +979,11 @@ void GLWidget::mainMenu(int i) {
 
 
 int GLWidget::mainreplaced(int argc, char **argv) {
-
-    //initGL(&argc, argv);
-
-
-
     //if (!g_refFile) {
         //initMenus();//TODO check qt
     //}
 
-
-    //glutDisplayFunc(display);//paint
-    //glutReshapeFunc(reshape);//resize
-    //glutMouseFunc(mouse);//pressevent, release event (pending scroll??)
-    //glutMotionFunc(motion);//motion
-    //glutKeyboardFunc(key);//keypressed
-
     //glutSpecialFunc(special);//don't know yet TODO
-    //glutIdleFunc(idle);//override timerEvent TODO
-
-    //glutCloseFunc(cleanup);//cleanup function in :~Widget
-
-    //glutMainLoop();//no need (app.exec())
 
 
 }

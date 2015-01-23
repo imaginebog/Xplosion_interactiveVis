@@ -18,7 +18,7 @@ SOURCES += main.cpp\
     glwidget.cpp \
     ModelOBJ.cpp \
     particleSystem.cpp \
-    particles.cpp \
+#    particles.cpp \
     render_particles.cpp \
     shaders.cpp \
     simului.cpp
@@ -55,14 +55,14 @@ NVCC_OPTIONS = --use_fast_math
 
 INCLUDEPATH += $$CUDA_DIR/include $$CUDA_SAMPLES
 
-QMAKE_LIBDIR += $$CUDA_DIR/lib/
+QMAKE_LIBDIR += $$CUDA_DIR/lib64/
 
 CUDA_OBJECTS_DIR = ./
 
 QMAKE_LFLAGS += -L/usr/local/cuda-6.5/samples/common/lib/linux/x86_64
 QMAKE_LFLAGS += -L/usr/local/cuda-6.5/lib64
 # Add the necessary libraries
-CUDA_LIBS = -lcuda -lcudart -lGL -lutil -lboost_iostreams -lboost_system -lboost_filesystem -lGLEW -lGLU -lX11 -lXi -lXmu -lglut
+CUDA_LIBS = -lcuda -lcudart -lGL -lutil -lboost_iostreams -lboost_system -lboost_filesystem -lGLEW -lGLU -lX11 -lXi -lXmu -lglut -L/usr/local/cuda-6.5/lib64
 
 # The following makes sure all path names (which often include spaces) are put between quotation marks
 CUDA_INC = $$join(INCLUDEPATH,'" -I"','-I"','"')

@@ -11,14 +11,6 @@
 #if defined (WIN32)
 #include <GL/wglew.h>
 #endif
-#if defined(__APPLE__) || defined(__MACOSX)
-  #include <GLUT/glut.h>
-  #ifndef glutCloseFunc
-  #define glutCloseFunc glutWMCloseFunc
-  #endif
-#else
-#include <GL/freeglut.h>
-#endif
 
 #include <stdlib.h>
 #include <cstdlib>
