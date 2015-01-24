@@ -18,7 +18,6 @@ SOURCES += main.cpp\
     glwidget.cpp \
     ModelOBJ.cpp \
     particleSystem.cpp \
-    particles.cpp \
     render_particles.cpp \
     shaders.cpp \
     simului.cpp \
