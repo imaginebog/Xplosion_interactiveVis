@@ -18,10 +18,11 @@ SOURCES += main.cpp\
     glwidget.cpp \
     ModelOBJ.cpp \
     particleSystem.cpp \
-#    particles.cpp \
+    particles.cpp \
     render_particles.cpp \
     shaders.cpp \
-    simului.cpp
+    simului.cpp \
+    gllegendwidget.cpp
 
 HEADERS  += \
     glwidget.h \
@@ -32,7 +33,8 @@ HEADERS  += \
     render_particles.h \
     shaders.h \
     particleSystem.cuh \
-    simului.h
+    simului.h \
+    gllegendwidget.h
 
 FORMS    += \
     simului.ui

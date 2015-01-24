@@ -14,6 +14,11 @@ extern "C" void copyArrayFromDevice(void *host, const void *device,
 
 GLWidget::GLWidget(QWidget *parent) : QOpenGLWidget(parent)
 {
+    camera_trans=(float*)calloc(3,sizeof(float));
+    camera_trans_lag=(float*)calloc(3,sizeof(float));
+    camera_rot_lag=(float*)calloc(3,sizeof(float));
+    camera_rot=(float*)calloc(3,sizeof(float));
+
     camera_trans[0]=0;
     camera_trans[1]=0;
     camera_trans[2]=-3;
@@ -88,7 +93,8 @@ void GLWidget::initializeGL()//initGL
     //glutInitDisplayMode(GLUT_RGBA | GLUT_DEPTH | GLUT_DOUBLE);//TODO Check qt
     //glutInitWindowSize(width, height);//TODO Check qt
 
-    reshape(size().width(),size().height());
+
+
     glewInit();
 
     if (!glewIsSupported(
@@ -113,13 +119,177 @@ void GLWidget::initializeGL()//initGL
     cudaGLInit(0, NULL);
 
     loadSimulationSystem();
-
-
+    reshape(size().width(),size().height());
+    QTimer *idleTimer=new QTimer(this);
+    connect(idleTimer, SIGNAL(timeout()), this, SLOT(idle()));
+         idleTimer->start(0);
 }
-
 void GLWidget::resizeGL(int wid, int hei)
 {
     reshape(wid,hei);
+}
+void GLWidget::paintGL() {//display()
+    sdkStartTimer(&timer);
+
+    // update the simulation
+    renderer->setVertexBuffer(psystem->getCurrentReadBuffer(),
+            psystem->getNumParticles());
+
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    // view transform
+    glMatrixMode(GL_MODELVIEW);
+    int aje=width+height;
+    glViewport(0, 0, size().width(), size().height());
+    glLoadIdentity();
+
+    for (int c = 0; c < 3; ++c) {
+        camera_trans_lag[c] += (camera_trans[c] - camera_trans_lag[c])
+                * inertia;
+        camera_rot_lag[c] += (camera_rot[c] - camera_rot_lag[c]) * inertia;
+    }
+    glTranslatef(camera_trans_lag[0], camera_trans_lag[1], camera_trans_lag[2]);
+    //TODO Solution:: calibrate axis 3 cuz wasn't working!!!
+    glRotatef(camera_rot_lag[0], 1.0, 0.0, 0.0);
+    glRotatef(camera_rot_lag[1], 0.0, 1.0, 0.0);
+
+    glGetFloatv(GL_MODELVIEW_MATRIX, modelView);
+
+    // cube
+    glColor3f(1.0, 1.0, 1.0);
+    //glutWireCube(2.0);//TODO REPLACE
+
+    paintAxis();
+
+    paintBoxCutter();
+    paintCutter(psystem->cutterX.pos, psystem->cutterX.size);
+    paintCutter(psystem->cutterY.pos, psystem->cutterY.size);
+    paintCutter(psystem->cutterZ.pos, psystem->cutterZ.size);
+
+    //paint wireframe
+    if (obj_alpha > 0 && obj_drawmode)
+        obj.DrawMode(4, obj_alpha); //4 is for triangles
+
+    if (renderer && displayEnabled) {
+        renderer->display(displayMode);
+    }
+
+    if (displaySliders) {
+        glDisable(GL_DEPTH_TEST);
+        glBlendFunc(GL_ONE_MINUS_DST_COLOR, GL_ZERO); // invert color
+
+        params->Render(0, 0);
+
+        glEnable(GL_DEPTH_TEST);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    }
+    { //display slider of player
+        glDisable(GL_DEPTH_TEST);
+        glBlendFunc(GL_ONE_MINUS_DST_COLOR, GL_ZERO); // invert color
+
+        videoPlayer->Render(0, height - 20);
+
+        glEnable(GL_DEPTH_TEST);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    }
+
+    paintColorBoxScale(currentVarName,coloresScale,valoresScale,lenCol);
+
+    glMatrixMode(GL_MODELVIEW);
+    glViewport(0, height * 3 / 4, width * 1 / 4, height * 1 / 4);
+    glLoadIdentity();
+
+    //glClearColor(0,0,0.5,1);
+
+    glTranslatef(0.2f, 0, -3);
+
+    glGetFloatv(GL_MODELVIEW_MATRIX, modelView2);
+
+    // cube
+    glColor3f(1.0, 1.0, 1.0);
+    //glutWireCube(2.0);//TODO REPLACE
+
+    //obj.DrawMode(GL_POINTS,0.1f);
+    paintPosition(
+            make_float3(camera_trans_lag[0], camera_trans_lag[1],
+                    camera_trans_lag[2]));
+
+    sdkStopTimer(&timer);
+
+
+    //QOpenGLContext::swapBuffers();
+    //glutReportErrors();//TODO REPLACE
+
+    computeFPS();
+    //update();//idle is enough
+}
+void GLWidget::mousePressEvent(QMouseEvent *event)
+{
+    mouse(event->button()-1,MOUSE_DOWN,event->x(),event->y(),event->modifiers());
+}
+void GLWidget::mouseReleaseEvent(QMouseEvent *event)
+{
+    mouse(event->button()-1,MOUSE_UP,event->x(),event->y(),event->modifiers());
+}
+void GLWidget::mouseMoveEvent(QMouseEvent *event)
+{
+    motion(event->x(),event->y());
+}
+void GLWidget::keyPressEvent(QKeyEvent *event)
+{
+    switch (event->key()) {
+    case Qt::Key_Escape:
+        key('\033',0,0);
+        break;
+    case Qt::Key_Enter:
+        key('\r',0,0);
+        break;
+    case Qt::Key_Up:
+        psystem->forwardDirectionCutter = true;
+        psystem->advanceCutter();
+        break;
+    case Qt::Key_Down:
+        psystem->forwardDirectionCutter = false;
+        psystem->advanceCutter();
+        break;
+    case Qt::Key_Left:
+        psystem->rewind();
+        break;
+
+    case Qt::Key_Right:
+        psystem->forward();
+        break;
+    case Qt::Key_F1:
+        psystem->currentCutter = 0;
+        psystem->initCutters();
+        psystem->demoCutting = true;
+        psystem->clipped = true;
+        break;
+    case Qt::Key_F2:
+        psystem->currentCutter = 1;
+        psystem->initCutters();
+        psystem->demoCutting = true;
+        psystem->clipped = true;
+        break;
+    case Qt::Key_F3:
+        psystem->currentCutter = 2;
+        psystem->initCutters();
+        psystem->demoCutting = true;
+        psystem->clipped = true;
+        break;
+    case Qt::Key_F4:
+        psystem->demoCutting = false;
+        psystem->initCutters2();
+        psystem->enableCutting = false;
+        psystem->clipped = false;
+        psystem->updateColor();
+        break;
+    default:
+        key(event->key(),0,0);
+        break;
+    }
+
 }
 
 void GLWidget::refreshLegend()
@@ -356,24 +526,20 @@ void GLWidget::paintColorBoxScale(const char *nameVar, float** colors,float* val
         float * col1=colors[var];
         float * col2=colors[var+1];
         glBegin(GL_QUADS);
-        //glColor3f(1.0f, 0.0f, 0.0f); // make this vertex red
         glColor3fv(col1);
         glVertex2f(width - gradWidth, posY);
         glVertex2f(width - 5, posY);
-        //glColor3f(1.0f, 1.0f, 0.0f); // make this vertex yellow
         glColor3fv(col2);
         glVertex2f(width - 5, posY-gradHeight);
         glVertex2f(width - gradWidth, posY-gradHeight);
         glEnd();
 
         glColor3f(1.0f, 1.0f, 1.0f);
-        //glColor3f(0,0,0);
 
         testing=(char*)calloc(20,sizeof(char));
         snprintf(testing,20,"%.2f",values[var]);
         len = (int) strlen(testing)*8;
         glPrint(width - gradWidth-len, posY+10,testing,m_font);
-        //glPrint(width - gradWidth, posY+10,testing,m_font);
 
         posY-=gradHeight;
     }
@@ -462,103 +628,6 @@ void GLWidget::paintAxis() {
     glPopMatrix();
 
 }
-void GLWidget::paintGL() {//display()
-    sdkStartTimer(&timer);
-
-    // update the simulation
-    renderer->setVertexBuffer(psystem->getCurrentReadBuffer(),
-            psystem->getNumParticles());
-
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    // view transform
-    glMatrixMode(GL_MODELVIEW);
-    int aje=width+height;
-    glViewport(0, 0, size().width(), size().height());
-    glLoadIdentity();
-
-    for (int c = 0; c < 3; ++c) {
-        camera_trans_lag[c] += (camera_trans[c] - camera_trans_lag[c])
-                * inertia;
-        camera_rot_lag[c] += (camera_rot[c] - camera_rot_lag[c]) * inertia;
-    }
-
-    //glTranslatef(camera_trans_lag[0], camera_trans_lag[1], camera_trans_lag[0]);
-    glTranslatef(camera_trans_lag[0], camera_trans_lag[1], camera_trans_lag[2]);
-    //TODO Solution:: calibrate axis 3 cuz wasn't working!!!
-    glRotatef(camera_rot_lag[0], 1.0, 0.0, 0.0);
-    glRotatef(camera_rot_lag[1], 0.0, 1.0, 0.0);
-
-    glGetFloatv(GL_MODELVIEW_MATRIX, modelView);
-
-    // cube
-    glColor3f(1.0, 1.0, 1.0);
-    //glutWireCube(2.0);//TODO REPLACE
-
-    paintAxis();
-
-    paintBoxCutter();
-    paintCutter(psystem->cutterX.pos, psystem->cutterX.size);
-    paintCutter(psystem->cutterY.pos, psystem->cutterY.size);
-    paintCutter(psystem->cutterZ.pos, psystem->cutterZ.size);
-
-    //paint wireframe
-    if (obj_alpha > 0 && obj_drawmode)
-        obj.DrawMode(4, obj_alpha); //4 is for triangles
-
-    if (renderer && displayEnabled) {
-        renderer->display(displayMode);
-    }
-
-    if (displaySliders) {
-        glDisable(GL_DEPTH_TEST);
-        glBlendFunc(GL_ONE_MINUS_DST_COLOR, GL_ZERO); // invert color
-
-        params->Render(0, 0);
-
-        glEnable(GL_DEPTH_TEST);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-    }
-    { //display slider of player
-        glDisable(GL_DEPTH_TEST);
-        glBlendFunc(GL_ONE_MINUS_DST_COLOR, GL_ZERO); // invert color
-
-        videoPlayer->Render(0, height - 20);
-
-        glEnable(GL_DEPTH_TEST);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    }
-
-    paintColorBoxScale(currentVarName,coloresScale,valoresScale,lenCol);
-
-    glMatrixMode(GL_MODELVIEW);
-    glViewport(0, height * 3 / 4, width * 1 / 4, height * 1 / 4);
-    glLoadIdentity();
-
-    //glClearColor(0,0,0.5,1);
-
-    glTranslatef(0.2f, 0, -3);
-
-    glGetFloatv(GL_MODELVIEW_MATRIX, modelView2);
-
-    // cube
-    glColor3f(1.0, 1.0, 1.0);
-    //glutWireCube(2.0);//TODO REPLACE
-
-    //obj.DrawMode(GL_POINTS,0.1f);
-    paintPosition(
-            make_float3(camera_trans_lag[0], camera_trans_lag[1],
-                    camera_trans_lag[2]));
-
-    sdkStopTimer(&timer);
-
-
-    //QOpenGLContext::swapBuffers();
-    //glutReportErrors();//TODO REPLACE
-
-    computeFPS();
-}
 
 inline float frand() {
     return rand() / (float) RAND_MAX;
@@ -579,14 +648,7 @@ void GLWidget::reshape(int w, int h) {
         renderer->setFOV(60.0);
     }
 }
-void GLWidget::mousePressEvent(QMouseEvent *event)
-{
-    mouse(event->button()-1,MOUSE_DOWN,event->x(),event->y(),event->modifiers());
-}
-void GLWidget::mouseReleaseEvent(QMouseEvent *event)
-{
-    mouse(event->button()-1,MOUSE_UP,event->x(),event->y(),event->modifiers());
-}
+
 void GLWidget::mouse(int button, int state, int x, int y, Qt::KeyboardModifiers mods) {
 
     if (state == MOUSE_DOWN) {
@@ -620,11 +682,11 @@ void GLWidget::mouse(int button, int state, int x, int y, Qt::KeyboardModifiers 
     }
     if (displaySliders) {
         if (params->Mouse(x, y, button, state)) {
-            update();
-            return;
+            //
         }
     }
 
+    repaint();
     update();
 }
 
@@ -636,7 +698,6 @@ void GLWidget::resetView() {
     camera_rot[0] = 0;
     camera_rot[1] = 0;
     camera_rot[2] = 0;
-
 }
 
 // transfrom vector by matrix
@@ -662,12 +723,6 @@ void ixxformPoint(float *v, float *r, GLfloat *m) {
     ixxform(x, r, m);
 }
 
-
-void GLWidget::mouseMoveEvent(QMouseEvent *event)
-{
-    motion(event->x(),event->y());
-}
-
 void GLWidget::motion(int x, int y) {
     float dx, dy;
     dx = (float) (x - ox);
@@ -686,8 +741,6 @@ void GLWidget::motion(int x, int y) {
     switch (mode) {
     case M_VIEW:
         if (buttonState == 3) {
-            printf("zooming...");
-            fflush(stdout);
             // left+middle = zoom
             camera_trans[2] += (dy / 100.0f) * 0.5f * fabs(camera_trans[2]);
         } else if (buttonState & 2) {
@@ -760,11 +813,6 @@ void GLWidget::motion(int x, int y) {
     idleCounter = 0;
 
     update();
-}
-
-void GLWidget::keyPressEvent(QKeyEvent *event)
-{
-    key(event->key(),0,0);
 }
 
 void GLWidget::key(unsigned char k, int /*x*/, int /*y*/) {
@@ -856,7 +904,6 @@ void GLWidget::key(unsigned char k, int /*x*/, int /*y*/) {
     case '\r':
         psystem->demoCutting = !psystem->demoCutting;
         break;
-
     case '\033':
         // cudaDeviceReset causes the driver to clean up all state. While
         // not mandatory in normal operation, it is good practice.  It is also
@@ -872,60 +919,7 @@ void GLWidget::key(unsigned char k, int /*x*/, int /*y*/) {
     demoMode = false;
     idleCounter = 0;
     update();
-}
-
-void GLWidget::special(int k, int x, int y) {
-
-    if (displaySliders) {
-        params->Special(k, x, y);
-    } else {
-        switch (k) {
-
-        case GLUT_KEY_UP:
-            psystem->forwardDirectionCutter = true;
-            psystem->advanceCutter();
-            break;
-        case GLUT_KEY_DOWN:
-            psystem->forwardDirectionCutter = false;
-            psystem->advanceCutter();
-            break;
-        case GLUT_KEY_LEFT:
-            psystem->rewind();
-            break;
-
-        case GLUT_KEY_RIGHT:
-            psystem->forward();
-            break;
-        case GLUT_KEY_F1:
-            psystem->currentCutter = 0;
-            psystem->initCutters();
-            psystem->demoCutting = true;
-            psystem->clipped = true;
-            break;
-        case GLUT_KEY_F2:
-            psystem->currentCutter = 1;
-            psystem->initCutters();
-            psystem->demoCutting = true;
-            psystem->clipped = true;
-            break;
-        case GLUT_KEY_F3:
-            psystem->currentCutter = 2;
-            psystem->initCutters();
-            psystem->demoCutting = true;
-            psystem->clipped = true;
-            break;
-        case GLUT_KEY_F4:
-            psystem->demoCutting = false;
-            psystem->initCutters2();
-            psystem->enableCutting = false;
-            psystem->clipped = false;
-            psystem->updateColor();
-            break;
-        }
-    }
-
-    demoMode = false;
-    idleCounter = 0;
+    repaint();
 }
 
 void GLWidget::idle(void) {
@@ -945,10 +939,9 @@ void GLWidget::idle(void) {
 
             psystem->forward();
             playCounter = 0;
-            update();
         }
     }
-
+    update();
 
 }
 
@@ -975,15 +968,4 @@ void GLWidget::initParams() {
 
 void GLWidget::mainMenu(int i) {
     key((unsigned char) i, 0, 0);
-}
-
-
-int GLWidget::mainreplaced(int argc, char **argv) {
-    //if (!g_refFile) {
-        //initMenus();//TODO check qt
-    //}
-
-    //glutSpecialFunc(special);//don't know yet TODO
-
-
 }

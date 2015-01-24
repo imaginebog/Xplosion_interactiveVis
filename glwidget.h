@@ -1,8 +1,6 @@
 #ifndef GLWIDGET_H
 #define GLWIDGET_H
 
-
-
 // OpenGL Graphics includes
 #include <GL/glew.h>
 #if defined (WIN32)
@@ -30,6 +28,7 @@
 #include <QtOpenGL/QGLWidget>
 #include <QOpenGLWidget>
 #include <QOpenGLContext>
+#include <QTimer>
 
 
 #define DEFAULT_COLOR_CONFIG PATH_INI"/colores.config"
@@ -54,6 +53,7 @@ protected:
 private:
     Gnuplot gp;
 
+    bool cameraHasChange;
     uint width = 1200, height = 960;
 
     char* datafilepath;
@@ -68,12 +68,12 @@ private:
     // view params
     int ox, oy;
     int buttonState = 0;
-    float camera_trans[];
-    float camera_rot[];
-    float camera_trans_lag[];
-    float camera_rot_lag[];
+    float* camera_trans;
+    float* camera_rot;
+    float* camera_trans_lag;
+    float* camera_rot_lag;
     const float inertia = 0.1f;
-    ParticleRenderer::DisplayMode displayMode = ParticleRenderer::PARTICLE_SPHERES;
+    ParticleRenderer::DisplayMode displayMode = ParticleRenderer::PARTICLE_FLAT_SPHERES;
     //ParticleRenderer::DisplayMode displayMode = ParticleRenderer::PARTICLE_POINTS; //important!!
 
     int mode = 0;
@@ -156,14 +156,14 @@ private:
     void motion(int x, int y);
     void key(unsigned char k, int /*x*/, int /*y*/);
     void special(int k, int x, int y);
-    void idle(void);
+
     void initParams();
     void mainMenu(int i);
-    int mainreplaced(int argc, char **argv);
 
 signals:
 
 public slots:
+    void idle(void);
 };
 
 #endif // GLWIDGET_H
