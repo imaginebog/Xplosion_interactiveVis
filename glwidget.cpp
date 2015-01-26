@@ -12,8 +12,43 @@ extern "C" void cudaGLInit(int argc, char **argv);
 extern "C" void copyArrayFromDevice(void *host, const void *device,
         unsigned int vbo, int size);
 
+void GLWidget::initConstants()
+{
+    notFlushed=true;
+    buttonState = 0;
+    inertia = 0.1f;
+    displayMode = ParticleRenderer::PARTICLE_FLAT_SPHERES;
+    mode = 0;
+    playMode = false;
+    displayEnabled = true;
+    bPause = false;
+    displaySliders = false;
+    demoMode = false;
+
+    idleCounter = 0;
+    demoCounter = 0;
+    playCounter = 0;
+    idleDelay = 2000;
+    numParticles = 0;
+    timestep = 0.5f;
+    rangeColor = 200;
+    psystem = 0;
+    fpsCount = 0;
+    fpsLimit = 1;
+
+    renderer = 0;
+    obj_drawmode = false;
+    obj_alpha = 0.4f;
+    frameCheckNumber = 4;
+    frameCount = 0;
+    g_TotalErrors = 0;
+
+    sSDKsample = "Xplotion Simulation";
+}
+
 GLWidget::GLWidget(QWidget *parent) : QOpenGLWidget(parent)
 {
+    initConstants();
     camera_trans=(float*)calloc(3,sizeof(float));
     camera_trans_lag=(float*)calloc(3,sizeof(float));
     camera_rot_lag=(float*)calloc(3,sizeof(float));
@@ -66,7 +101,8 @@ GLWidget::GLWidget(QWidget *parent) : QOpenGLWidget(parent)
     fflush(stdout);
 
 
-
+    isNewKey=false;
+    newKey=0;
 }
 
 GLWidget::~GLWidget()
@@ -76,11 +112,13 @@ GLWidget::~GLWidget()
 
 void GLWidget::loadSimulationSystem()
 {
+
     initSimulationSystem(true, datafilepath);
     colorConfig(colorconfigpath);
     initParams();
     refreshLegend();
 
+    psystem->demoCutting = false;
     printf("\nantes del obj\n");
     fflush(stdout);
     obj.Load(OBJ_PATH, psystem->maxTotal);
@@ -91,10 +129,6 @@ void GLWidget::loadSimulationSystem()
 void GLWidget::initializeGL()//initGL
 {
     //glutInitDisplayMode(GLUT_RGBA | GLUT_DEPTH | GLUT_DOUBLE);//TODO Check qt
-    //glutInitWindowSize(width, height);//TODO Check qt
-
-
-
     glewInit();
 
     if (!glewIsSupported(
@@ -129,6 +163,15 @@ void GLWidget::resizeGL(int wid, int hei)
     reshape(wid,hei);
 }
 void GLWidget::paintGL() {//display()
+
+    if(isNewKey)
+    {
+        glFlush();
+        glFinish();
+        //notFlushed=false;
+        isNewKey=false;
+        special2(newKey);
+    }
     sdkStartTimer(&timer);
 
     // update the simulation
@@ -139,7 +182,6 @@ void GLWidget::paintGL() {//display()
 
     // view transform
     glMatrixMode(GL_MODELVIEW);
-    int aje=width+height;
     glViewport(0, 0, size().width(), size().height());
     glLoadIdentity();
 
@@ -222,7 +264,8 @@ void GLWidget::paintGL() {//display()
     //glutReportErrors();//TODO REPLACE
 
     computeFPS();
-    //update();//idle is enough
+    //glFlush();//TODO es en vano??
+
 }
 void GLWidget::mousePressEvent(QMouseEvent *event)
 {
@@ -238,7 +281,82 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
 }
 void GLWidget::keyPressEvent(QKeyEvent *event)
 {
+//    if(notFlushed)
+//    {
+//        isNewKey=true;
+//        newKey=event->key();
+//        return;
+//    }
     switch (event->key()) {
+    case Qt::Key_Escape:
+        key('\033',0,0);
+        break;
+    case Qt::Key_Enter:
+    case Qt::Key_Return:
+        key('\r',0,0);
+        break;
+    case Qt::Key_Up:
+        psystem->forwardDirectionCutter = true;
+        psystem->advanceCutter();
+        break;
+    case Qt::Key_Down:
+        psystem->forwardDirectionCutter = false;
+        psystem->advanceCutter();
+        break;
+    case Qt::Key_Left:
+        psystem->rewind();
+        break;
+
+    case Qt::Key_Right:
+        psystem->forward();
+        break;
+    case Qt::Key_F1:
+        psystem->currentCutter = 0;
+        psystem->initCutters();
+        psystem->demoCutting = true;
+        psystem->clipped = true;
+        makeCurrent();
+        psystem->updateColor();
+        break;
+    case Qt::Key_F2:
+        psystem->currentCutter = 1;
+        psystem->initCutters();
+        psystem->demoCutting = true;
+        psystem->clipped = true;
+        makeCurrent();
+        psystem->updateColor();
+        break;
+    case Qt::Key_F3:
+        psystem->currentCutter = 2;
+        psystem->initCutters();
+        psystem->demoCutting = true;
+        psystem->clipped = true;
+        makeCurrent();
+        psystem->updateColor();
+        break;
+    case Qt::Key_F4:
+        psystem->demoCutting = false;
+        psystem->initCutters2();
+        psystem->enableCutting = false;
+        psystem->clipped = false;
+        makeCurrent();
+        psystem->updateColor();
+        break;
+    default:
+        key(event->key(),0,0);
+        break;
+    }
+
+}
+void GLWidget::special(uint keyP)
+{
+    isNewKey=true;
+    newKey=keyP;
+}
+
+void GLWidget::special2(uint keyP)
+{
+    switch (keyP) {
     case Qt::Key_Escape:
         key('\033',0,0);
         break;
@@ -265,18 +383,21 @@ void GLWidget::keyPressEvent(QKeyEvent *event)
         psystem->initCutters();
         psystem->demoCutting = true;
         psystem->clipped = true;
+        psystem->updateColor();
         break;
     case Qt::Key_F2:
         psystem->currentCutter = 1;
         psystem->initCutters();
         psystem->demoCutting = true;
         psystem->clipped = true;
+        psystem->updateColor();
         break;
     case Qt::Key_F3:
         psystem->currentCutter = 2;
         psystem->initCutters();
         psystem->demoCutting = true;
         psystem->clipped = true;
+        psystem->updateColor();
         break;
     case Qt::Key_F4:
         psystem->demoCutting = false;
@@ -286,7 +407,7 @@ void GLWidget::keyPressEvent(QKeyEvent *event)
         psystem->updateColor();
         break;
     default:
-        key(event->key(),0,0);
+        key(keyP,0,0);
         break;
     }
 
@@ -426,6 +547,7 @@ void GLWidget::colorConfig(string configFilePath) {
 
 }
 void GLWidget::initSimulationSystem(bool bUseOpenGL, string filePath) {
+
     psystem = new ParticleSystem(bUseOpenGL);
 
     if (filePath.empty())
@@ -919,7 +1041,6 @@ void GLWidget::key(unsigned char k, int /*x*/, int /*y*/) {
     demoMode = false;
     idleCounter = 0;
     update();
-    repaint();
 }
 
 void GLWidget::idle(void) {
@@ -928,15 +1049,16 @@ void GLWidget::idle(void) {
         demoCounter++;
         if (demoCounter++ > 20) {
 
+            makeCurrent();
             psystem->advanceCutter();
             demoCounter = 0;
-            update();
         }
     }
     if (playMode) {
         playCounter++;
         if (playCounter++ > 15) {
 
+            makeCurrent();
             psystem->forward();
             playCounter = 0;
         }

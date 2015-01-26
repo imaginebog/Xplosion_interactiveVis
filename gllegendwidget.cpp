@@ -12,6 +12,7 @@ GLLegendWidget::~GLLegendWidget()
 
 void GLLegendWidget::initializeGL()//initGL
 {
+    psysteminitialized=false;
     refreshLegend();
     glClearColor(0.5f, 0.5f, 0.5f, 1.0f); // Set background color to black and opaque
       glClear(GL_COLOR_BUFFER_BIT);         // Clear the color buffer (background)
@@ -19,8 +20,12 @@ void GLLegendWidget::initializeGL()//initGL
 }
 void GLLegendWidget::paintGL() {
 
-    paintColorBoxScale("currentVarName",coloresScale,valoresScale,lenCol);
+    glClearColor(0.5f, 0.5f, 0.5f, 1.0f); // Set background color to black and opaque
+      glClear(GL_COLOR_BUFFER_BIT);         // Clear the color buffer (background)
+    //refreshLegend();
+    paintColorBoxScale(currentVarName,coloresScale,valoresScale,lenCol);
 
+    glFlush();
 
 
 }
@@ -45,45 +50,57 @@ void GLLegendWidget::keyPressEvent(QKeyEvent *event)
 }
 void GLLegendWidget::refreshLegend()
 {
-    /*
-    lenCol=psystem->totalValuesScale;
-    coloresScale=psystem->getColorsScale();
-    currentVarName=psystem->getCurrentVarName();
-    valoresScale=psystem->getValuesScale();
-    */
-    lenCol=3;
-    coloresScale=(float**)calloc(3,sizeof(float*));
-    coloresScale[0]=new float[3];
-    coloresScale[0][0]=0;
-    coloresScale[0][1]=0;
-    coloresScale[0][2]=1;
-    coloresScale[1]=new float[3];
-    coloresScale[1][0]=0;
-    coloresScale[1][1]=1;
-    coloresScale[1][2]=0;
-    coloresScale[2]=new float[3];
-    coloresScale[2][0]=1;
-    coloresScale[2][1]=0;
-    coloresScale[2][2]=0;
+    if(psysteminitialized)
+    {
+        lenCol=psystem->totalValuesScale;
+        coloresScale=psystem->getColorsScale();
+        currentVarName=psystem->getCurrentVarName();
+        valoresScale=psystem->getValuesScale();
+    }
+    else
+    {
+        lenCol=3;
+        coloresScale=(float**)calloc(3,sizeof(float*));
+        coloresScale[0]=new float[3];
+        coloresScale[0][0]=0;
+        coloresScale[0][1]=0;
+        coloresScale[0][2]=1;
+        coloresScale[1]=new float[3];
+        coloresScale[1][0]=0;
+        coloresScale[1][1]=1;
+        coloresScale[1][2]=0;
+        coloresScale[2]=new float[3];
+        coloresScale[2][0]=1;
+        coloresScale[2][1]=0;
+        coloresScale[2][2]=0;
 
-    currentVarName="Any var";
+        currentVarName="Any var";
 
-    valoresScale=new float[3];
-    valoresScale[0]=0;
-    valoresScale[1]=10;
-    valoresScale[2]=30;
+        valoresScale=new float[3];
+        valoresScale[0]=0;
+        valoresScale[1]=10;
+        valoresScale[2]=30;
 
+    }
+    update();
     printf("legend refreshed:\n");    printf("%s\n",currentVarName);
     printf("valores:(%f,%f,%f,%f)",valoresScale[0],valoresScale[1],valoresScale[2]);
     fflush(stdout);
 }
+void GLLegendWidget::setSimulSystem(ParticleSystem *ssystem)
+{
+    psystem=ssystem;
+    psysteminitialized=true;
+    refreshLegend();
+}
+
 void GLLegendWidget::paintText(QString str,float xStr,float yStr)
 {
     float xS=xStr-1,yS=yStr-1;
     xS*=-width()/2,yS*=-height()/2;
     QPainter painter(this);
     painter.setPen(Qt::white);
-    painter.setFont(QFont("Arial", 10));
+    painter.setFont(QFont("Calibri", 9));
     QFontMetrics fm(painter.font());
     int pixelsWide = fm.width(str);
     if(yS<=0)
@@ -128,5 +145,4 @@ void GLLegendWidget::paintColorBoxScale(const char *nameVar, float** colors,floa
     snprintf(testing,20,"%.2f",values[var]);
     paintText(testing,-0.6f,posY);
     paintText(nameVar,0.9f,posY+0.1f);
-    //glPrint(width - len, 15,nameVar,m_font);//TODO
 }

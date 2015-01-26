@@ -39,7 +39,17 @@ class GLWidget : public QOpenGLWidget
 public:
     void loadSimulationSystem();
     explicit GLWidget(QWidget *parent = 0);
+    ParticleSystem * getSimulationSystem()
+    {
+        return psystem;
+    }
+
     ~GLWidget();
+
+    void key(unsigned char k, int /*x*/, int /*y*/);
+    void special(uint keyP);
+
+    void keyPressEvent(QKeyEvent *event) Q_DECL_OVERRIDE;
 
 protected:
     void initializeGL() Q_DECL_OVERRIDE;
@@ -48,73 +58,78 @@ protected:
     void mousePressEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
     void mouseReleaseEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
     void mouseMoveEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
-    void keyPressEvent(QKeyEvent *event) Q_DECL_OVERRIDE;
+
+
 
 private:
+    bool notFlushed;
+    void initConstants();
+    bool isNewKey;
+    uint newKey;
+    void special2(uint kp);
     Gnuplot gp;
 
     bool cameraHasChange;
-    uint width = 1200, height = 960;
+    uint width, height;
 
-    char* datafilepath;
-    char* colorconfigpath;
+    const char* datafilepath;
+    const char* colorconfigpath;
     // Scale reference:
 
     int lenCol;
     float** coloresScale;
     float* valoresScale;
-    char* currentVarName;
+    const char* currentVarName;
 
     // view params
     int ox, oy;
-    int buttonState = 0;
+    int buttonState;
     float* camera_trans;
     float* camera_rot;
     float* camera_trans_lag;
     float* camera_rot_lag;
-    const float inertia = 0.1f;
-    ParticleRenderer::DisplayMode displayMode = ParticleRenderer::PARTICLE_FLAT_SPHERES;
-    //ParticleRenderer::DisplayMode displayMode = ParticleRenderer::PARTICLE_POINTS; //important!!
+    float inertia;
+    ParticleRenderer::DisplayMode displayMode;
 
-    int mode = 0;
-    bool playMode = false;
-    bool displayEnabled = true;
-    bool bPause = false;
-    bool displaySliders = false;
+    int mode;
+    bool playMode;
+    bool displayEnabled;
+    bool bPause;
+    bool displaySliders;
 
-    bool demoMode = false;
+    bool demoMode;
 
-    int idleCounter = 0;
-    int demoCounter = 0;
-    int playCounter = 0;
-    const int idleDelay = 2000;
+    int idleCounter;
+    int demoCounter;
+    int playCounter;
+    int idleDelay;
 
     enum {
         M_VIEW = 0, M_MOVE
     };
 
-    uint numParticles = 0;
+    uint numParticles;
 
 
     // simulation parameters
-    float timestep = 0.5f;
-    int rangeColor = 200;
+    float timestep;
+    int rangeColor;
 
-    ParticleSystem *psystem = 0;
+    ParticleSystem *psystem;
 
     // fps
 
     StopWatchInterface *timer = NULL;
 
-    int fpsCount = 0;
-    int fpsLimit = 1;
+    int fpsCount;
+    int fpsLimit;
 
-    ParticleRenderer *renderer = 0;
+    ParticleRenderer *renderer;
 
     Model_OBJ obj;
 
-    bool obj_drawmode = false;
-    float obj_alpha = 0.4f;
+    bool obj_drawmode;
+    float obj_alpha;
 
     float modelView[16];
     float modelView2[16];
@@ -125,12 +140,12 @@ private:
     void *m_font = (void *)  GLUT_BITMAP_8_BY_13;
 
     // Auto-Verification Code
-    const int frameCheckNumber = 4;
-    unsigned int frameCount = 0;
-    unsigned int g_TotalErrors = 0;
+    int frameCheckNumber;
+    unsigned int frameCount;
+    unsigned int g_TotalErrors;
     char *g_refFile = NULL;
 
-    const char *sSDKsample = "Xplotion Simulation";
+    const char *sSDKsample;
 
 
     void refreshLegend();
@@ -154,8 +169,7 @@ private:
     void mouse(int button, int state, int x, int y,Qt::KeyboardModifiers mods);
     void resetView();
     void motion(int x, int y);
-    void key(unsigned char k, int /*x*/, int /*y*/);
-    void special(int k, int x, int y);
+
 
     void initParams();
     void mainMenu(int i);

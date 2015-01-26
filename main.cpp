@@ -9,18 +9,16 @@ int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
     glutInit(&argc, argv);
-    //GLWidget w;
-    //w.setWindowTitle("Xplosion simulation");
-    //w.show();
-
-    GLLegendWidget w2;
-    w2.setWindowTitle("The legend");
-    w2.show();
+    GLWidget w;
+    //w.makeCurrent();
+    w.setWindowTitle("Xplosion simulation");
+    w.show();
 
     SimulUI wui;
     wui.setWindowTitle("Simulation dashboard");
     wui.show();
-
-
+    wui.setSimulWindow(&w);
+    wui.setSimulSystem(w.getSimulationSystem());
+    wui.setDefaults();
     return a.exec();
 }

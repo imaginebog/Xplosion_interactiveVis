@@ -39,26 +39,32 @@
 
 // Particle system class
 class ParticleSystem {
+
+private:
+    void initConstants();
 public:
     ParticleSystem(bool bUseOpenGL);
 	~ParticleSystem();
+
+    ParticleSystem() {
+    }
+
 
 	bool clipped;
 	int currentVariable;
 	int colorRangeMode;
 	bool demoCutting;
-	bool enableCutting=false;
-	bool displayLow=true,displayMiddle=true,displayHigh=true;
+    bool enableCutting,displayLow,displayMiddle,displayHigh;
 	float particleRadius;
 
 	float maxTotal;
 
 	float maxLocalVar, minLocalVar, width_histogram;
 
-	float* gradientInitialColor = (float*) calloc(3, sizeof(float));
-	float* gradientFinalColor = (float*) calloc(3, sizeof(float));
-	float* highColor = (float*) calloc(3, sizeof(float));
-	float* lowColor = (float*) calloc(3, sizeof(float));
+    float* gradientInitialColor;
+    float* gradientFinalColor;
+    float* highColor;
+    float* lowColor;
 
 	enum FixedVariables {
 		VAR_TEMPERATURE, VAR_PRESSURE, VAR_VELOCITY, _NUM_VARIABLES
@@ -84,7 +90,7 @@ public:
 	void initCutters();
 	void initCutters2();
 
-	int currentCutter=0;
+    int currentCutter;
 	bool forwardDirectionCutter;
 	void forwardCutterX();
 	void rewindCutterX();
@@ -95,8 +101,8 @@ public:
 	void advanceCutter();
 
 
-	int totalValuesScale=4;
-	char* getCurrentVarName()
+    int totalValuesScale;
+    char const * getCurrentVarName()
 	{
 		switch(currentVariable)
 		{
@@ -132,7 +138,7 @@ public:
 		case 2:
 			return new float[4]{vmin,n_vmin,n_vmax,vmax};
 		}
-		return {};
+        return new float[0];
 
 	}
 	//TODO quitar después, es temporal
@@ -293,8 +299,6 @@ public:
 
 protected:
 	// methods
-	ParticleSystem() {
-	}
 	uint createVBO(uint size);
 
 	void _initialize(int numParticles);
@@ -361,8 +365,7 @@ protected:
 	float * temp;
 	float * pressureArray;
 	velocity * velArray;
-	int nframes = 0;
-	int currentFrame = 0;
+    int nframes,currentFrame;
 
 	int tamMax;
 	float xmax, ymax, zmax;

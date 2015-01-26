@@ -97,6 +97,20 @@ void ParticleSystem::setFileSource(string filePath) {
     printf("before initializing particles");
 	_initialize(m_numParticles);
 }
+void ParticleSystem::initConstants()
+{
+    enableCutting=false;
+    displayLow=true,displayMiddle=true,displayHigh=true;
+
+    gradientInitialColor = (float*) calloc(3, sizeof(float));
+    gradientFinalColor = (float*) calloc(3, sizeof(float));
+    highColor = (float*) calloc(3, sizeof(float));
+    lowColor = (float*) calloc(3, sizeof(float));
+    currentCutter=0;
+    totalValuesScale=4;
+    nframes = 0;
+    currentFrame = 0;
+}
 
 ParticleSystem::ParticleSystem(bool bUseOpenGL) :
 				m_bInitialized(false), m_bUseOpenGL(bUseOpenGL), m_numParticles(0), m_hPos(
@@ -104,6 +118,7 @@ ParticleSystem::ParticleSystem(bool bUseOpenGL) :
 								NULL), m_solverIterations(1), alpha(1), clipped(false), currentVariable(
 										0), m_numberHistogramIntervals(MAX_HISTOGRAM_INTERVALS), m_histogram(
 												0) {
+    initConstants();
 	colorRangeMode = COLOR_GRADIENT;
 
 	gradientInitialColor = new float[3] { 1, 1, 0 }; //{1,1,0};//yellow default
@@ -126,7 +141,7 @@ uint ParticleSystem::createVBO(uint size) {
 	GLuint vbo;
 	glGenBuffers(1, &vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	glBufferData(GL_ARRAY_BUFFER, size, 0, GL_DYNAMIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, size,0, GL_DYNAMIC_DRAW_ARB);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	return vbo;
 }
@@ -461,8 +476,8 @@ void ParticleSystem::_initialize(int numParticles) {
 
 
 	if (m_bUseOpenGL) {
-		m_colorVBO = createVBO(m_numParticles * 4 * sizeof(float));
-		m_colorVBO_vect = createVBO(m_numParticles * 8 * sizeof(float));
+        m_colorVBO = createVBO(m_numParticles * 4 * sizeof(float));
+        m_colorVBO_vect = createVBO(m_numParticles * 8 * sizeof(float));
 		m_pressureColor = createVBO(m_numParticles * 4 * sizeof(float));
 		m_temperatureColor = createVBO(m_numParticles * 4 * sizeof(float));
 		registerGLBufferObject(m_colorVBO, &m_cuda_colorvbo_resource);
@@ -483,7 +498,7 @@ void ParticleSystem::_initialize(int numParticles) {
 void ParticleSystem::initialSimulationColor() {
 	//TODO ... make this only once, then just assign data=precalculated data
 	// fill color buffer
-	glBindBufferARB(GL_ARRAY_BUFFER, m_colorVBO);
+    glBindBufferARB(GL_ARRAY_BUFFER, m_colorVBO);
 	float *data = (float *) glMapBufferARB(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
 	float *ptr = data;
 
@@ -561,11 +576,19 @@ void ParticleSystem::setCurrentFrame(int newframe) {
 void ParticleSystem::updateColor() {
 	//TODO switch case for every variable - should be a global variable so this is done for active variable!
 	//use paramMax and paramMin values to the scale of color
-
+    if(currentVariable==VAR_VELOCITY)//TODO any vectorial variable!
+    {
+        updateColorVect();
+        return;
+    }
 	// fill color buffer
-	glBindBufferARB(GL_ARRAY_BUFFER, m_colorVBO);
-	float *data = (float *) glMapBufferARB(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
-	float *ptr = data;
+    glBindBufferARB(GL_ARRAY_BUFFER_ARB, m_colorVBO);
+    //this... avoid segmentation fault but! ui is blank!!
+    //TODO include makeCurrent() here! (call exposed method in glwidget)
+    float *ptr = (float *) glMapBufferARB(GL_ARRAY_BUFFER_ARB, GL_WRITE_ONLY_ARB);
+
+    printf("\nupdateColor... &ptr: %d; *ptr: %f; ptr: %d\n\n",&ptr,*ptr,ptr);
+    fflush(stdout);
 
 	if (!clipped) {
 		for (uint i = 0; i < m_numParticles; i++) {
@@ -605,13 +628,13 @@ void ParticleSystem::updateColor() {
 				rightUpFront=cutterX.pos+cutterX.size/2;
 				break;
 			case 1:
-							leftDownBack=cutterY.pos-cutterY.size/2;
-							rightUpFront=cutterY.pos+cutterY.size/2;
-							break;
+                leftDownBack=cutterY.pos-cutterY.size/2;
+                rightUpFront=cutterY.pos+cutterY.size/2;
+                break;
 			case 2:
-							leftDownBack=cutterZ.pos-cutterZ.size/2;
-							rightUpFront=cutterZ.pos+cutterZ.size/2;
-							break;
+                leftDownBack=cutterZ.pos-cutterZ.size/2;
+                rightUpFront=cutterZ.pos+cutterZ.size/2;
+                break;
 
 			}
 			float3 leftDownBack2 = cutterBox.pos - cutterBox.size / 2;
@@ -645,7 +668,8 @@ void ParticleSystem::updateColor() {
 		}
 
 		for (uint i = 0; i < m_numParticles; i++) {
-			if (m_hPos[i * 4] > leftDownBack.x && m_hPos[i * 4] < rightUpFront.x
+            if (m_hPos[i * 4] > leftDownBack.x
+                    && m_hPos[i * 4] < rightUpFront.x
 					&& m_hPos[i * 4 + 1] > leftDownBack.y
 					&& m_hPos[i * 4 + 1] < rightUpFront.y
 					&& m_hPos[i * 4 + 2] > leftDownBack.z
@@ -677,8 +701,6 @@ void ParticleSystem::updateColor() {
 		}
 	}
 	glUnmapBufferARB(GL_ARRAY_BUFFER);
-
-	updateColorVect();
 }
 
 void ParticleSystem::updateColorVect() {
@@ -687,10 +709,9 @@ void ParticleSystem::updateColorVect() {
 
 	// fill color buffer
 	glBindBufferARB(GL_ARRAY_BUFFER, m_colorVBO_vect);
-	float *data = (float *) glMapBufferARB(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
-	float *ptr = data;
+    float *ptr = (float *) glMapBufferARB(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
 
-	if (!clipped) {
+    if (!clipped) {
 		for (uint i = 0; i < m_numParticles; i++) {
 			int al=rand()%100;
 
@@ -713,16 +734,15 @@ void ParticleSystem::updateColorVect() {
 						rightUpFront=cutterX.pos+cutterX.size/2;
 						break;
 					case 1:
-									leftDownBack=cutterY.pos-cutterY.size/2;
-									rightUpFront=cutterY.pos+cutterY.size/2;
-									break;
+                        leftDownBack=cutterY.pos-cutterY.size/2;
+                        rightUpFront=cutterY.pos+cutterY.size/2;
+                        break;
 					case 2:
-									leftDownBack=cutterZ.pos-cutterZ.size/2;
-									rightUpFront=cutterZ.pos+cutterZ.size/2;
-									break;
+                        leftDownBack=cutterZ.pos-cutterZ.size/2;
+                        rightUpFront=cutterZ.pos+cutterZ.size/2;
+                        break;
 
 					}
-
 				}
 				else{
 					leftDownBack = cutterBox.pos - cutterBox.size / 2;

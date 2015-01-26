@@ -64,7 +64,7 @@
     <property name="checked">
      <bool>false</bool>
     </property>
-    <widget class="QSlider" name="verticalSlider">
+    <widget class="QSlider" name="sliderOpacitySimul">
      <property name="geometry">
       <rect>
        <x>280</x>
@@ -83,7 +83,7 @@
       <enum>Qt::Vertical</enum>
      </property>
     </widget>
-    <widget class="QComboBox" name="comboBox">
+    <widget class="QComboBox" name="cbCurrentVar">
      <property name="geometry">
       <rect>
        <x>10</x>
@@ -152,7 +152,7 @@
       <rect>
        <x>150</x>
        <y>390</y>
-       <width>117</width>
+       <width>91</width>
        <height>22</height>
       </rect>
      </property>
@@ -181,22 +181,12 @@
       <rect>
        <x>150</x>
        <y>410</y>
-       <width>117</width>
+       <width>91</width>
        <height>22</height>
       </rect>
      </property>
      <property name="text">
       <string>Vectors</string>
-     </property>
-    </widget>
-    <widget class="QWidget" name="scaleWidget" native="true">
-     <property name="geometry">
-      <rect>
-       <x>20</x>
-       <y>70</y>
-       <width>191</width>
-       <height>291</height>
-      </rect>
      </property>
     </widget>
     <widget class="QLabel" name="label">
@@ -319,7 +309,7 @@
        <string>Opacity</string>
       </property>
      </widget>
-     <widget class="QSlider" name="verticalSlider_2">
+     <widget class="QSlider" name="sliderOpacityObj">
       <property name="geometry">
        <rect>
         <x>40</x>
@@ -342,8 +332,18 @@
       </property>
      </widget>
     </widget>
+    <widget class="GLLegendWidget" name="scaleWidget" native="true">
+     <property name="geometry">
+      <rect>
+       <x>50</x>
+       <y>70</y>
+       <width>141</width>
+       <height>291</height>
+      </rect>
+     </property>
+    </widget>
    </widget>
-   <widget class="QPushButton" name="pushButton">
+   <widget class="QPushButton" name="butResetView">
     <property name="geometry">
      <rect>
       <x>30</x>
@@ -376,7 +376,7 @@
     <property name="title">
      <string>Space</string>
     </property>
-    <widget class="QCheckBox" name="checkBox">
+    <widget class="QCheckBox" name="cbClipBox">
      <property name="geometry">
       <rect>
        <x>40</x>
@@ -389,7 +389,7 @@
       <string>Clip box</string>
      </property>
     </widget>
-    <widget class="QGroupBox" name="groupBox_2">
+    <widget class="QGroupBox" name="gbCutAxis">
      <property name="geometry">
       <rect>
        <x>10</x>
@@ -410,12 +410,12 @@
      <property name="checked">
       <bool>false</bool>
      </property>
-     <widget class="QRadioButton" name="radioButton">
+     <widget class="QRadioButton" name="rbXAxis">
       <property name="geometry">
        <rect>
         <x>10</x>
         <y>40</y>
-        <width>117</width>
+        <width>91</width>
         <height>22</height>
        </rect>
       </property>
@@ -423,12 +423,12 @@
        <string>X axis</string>
       </property>
      </widget>
-     <widget class="QRadioButton" name="radioButton_2">
+     <widget class="QRadioButton" name="rbYAxis">
       <property name="geometry">
        <rect>
         <x>10</x>
         <y>70</y>
-        <width>117</width>
+        <width>91</width>
         <height>22</height>
        </rect>
       </property>
@@ -436,12 +436,12 @@
        <string>Y axis</string>
       </property>
      </widget>
-     <widget class="QRadioButton" name="radioButton_3">
+     <widget class="QRadioButton" name="rbZAxis">
       <property name="geometry">
        <rect>
         <x>10</x>
         <y>100</y>
-        <width>117</width>
+        <width>91</width>
         <height>22</height>
        </rect>
       </property>
@@ -449,7 +449,7 @@
        <string>Z axis</string>
       </property>
      </widget>
-     <widget class="QPushButton" name="pushButton_3">
+     <widget class="QPushButton" name="butPlayStopAxis">
       <property name="geometry">
        <rect>
         <x>110</x>
@@ -462,6 +462,11 @@
        <string>&gt; / ||</string>
       </property>
      </widget>
+     <zorder>rbXAxis</zorder>
+     <zorder>rbYAxis</zorder>
+     <zorder>rbZAxis</zorder>
+     <zorder>butPlayStopAxis</zorder>
+     <zorder>scaleWidget</zorder>
     </widget>
    </widget>
    <widget class="QGroupBox" name="groupBox_3">
@@ -484,7 +489,7 @@
     <property name="title">
      <string>Time (ms)</string>
     </property>
-    <widget class="QPushButton" name="pushButton_4">
+    <widget class="QPushButton" name="butPlayPauseTime">
      <property name="geometry">
       <rect>
        <x>40</x>
@@ -711,7 +716,7 @@
     </property>
     <layout class="QVBoxLayout" name="verticalLayout">
      <item>
-      <widget class="QPushButton" name="pushButton_6">
+      <widget class="QPushButton" name="butHistogram">
        <property name="text">
         <string>Histogram</string>
        </property>
@@ -742,7 +747,7 @@ border-color: navy;
      </item>
     </layout>
    </widget>
-   <widget class="QGroupBox" name="groupBox_5">
+   <widget class="QGroupBox" name="gbCursorMode">
     <property name="geometry">
      <rect>
       <x>140</x>
@@ -763,7 +768,7 @@ border-color: navy;
     <property name="title">
      <string>Cursor mode:</string>
     </property>
-    <widget class="QRadioButton" name="radioButton_4">
+    <widget class="QRadioButton" name="rbView">
      <property name="geometry">
       <rect>
        <x>140</x>
@@ -776,7 +781,7 @@ border-color: navy;
       <string>View</string>
      </property>
     </widget>
-    <widget class="QRadioButton" name="radioButton_5">
+    <widget class="QRadioButton" name="rbClippingTool">
      <property name="geometry">
       <rect>
        <x>260</x>
@@ -834,6 +839,14 @@ border-color: navy;
    </property>
   </action>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>GLLegendWidget</class>
+   <extends>QWidget</extends>
+   <header location="global">gllegendwidget.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>

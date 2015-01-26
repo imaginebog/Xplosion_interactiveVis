@@ -70,6 +70,7 @@ CUDA_INC = $$join(INCLUDEPATH,'" -I"','-I"','"')
 #LIBS += $$join(CUDA_LIBS,'.so ', '', '.so')
 LIBS += $$CUDA_LIBS
 
+CONFIG+=console
 CONFIG(debug, debug|release) {
     # Debug mode
     cuda_d.input = CUDA_SOURCES

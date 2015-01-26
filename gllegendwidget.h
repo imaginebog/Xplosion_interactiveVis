@@ -11,6 +11,7 @@
 #include <cstdlib>
 #include <cstdio>
 #include "paramgl.h"
+#include "particleSystem.h"
 
 class GLLegendWidget : public QOpenGLWidget
 {
@@ -18,6 +19,8 @@ class GLLegendWidget : public QOpenGLWidget
 public:
     explicit GLLegendWidget(QWidget *parent = 0);
     ~GLLegendWidget();
+    void setSimulSystem(ParticleSystem *ssystem);
+    void refreshLegend();
 
 protected:
     void initializeGL() Q_DECL_OVERRIDE;
@@ -27,14 +30,16 @@ protected:
     void mouseMoveEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
     void keyPressEvent(QKeyEvent *event) Q_DECL_OVERRIDE;
 private:
+    bool psysteminitialized;
+    ParticleSystem *psystem;
     void paintColorBoxScale(const char *nameVar, float** colors,float* values,int length);
-    void refreshLegend();
+
     void paintText(QString str,float xStr,float yStr);
 
     int lenCol;
     float** coloresScale;
     float* valoresScale;
-    char* currentVarName;
+    const char* currentVarName;
 };
 
 #endif // GLLEGENDWIDGET_H
