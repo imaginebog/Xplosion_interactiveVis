@@ -58,6 +58,10 @@ private slots:
 
     void on_butResetView_clicked();
 
+    void on_butStopTime_clicked();
+
+    void on_sliderTime_sliderReleased();
+
 private:
     Ui::SimulUI *ui;
     GLWidget *simulWid;

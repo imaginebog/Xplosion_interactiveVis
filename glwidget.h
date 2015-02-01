@@ -37,6 +37,12 @@ class GLWidget : public QOpenGLWidget
 {
     Q_OBJECT
 public:
+    void setCurrentFrame(int indFrame);
+    int getNumFrames();
+    void changeCurrentVar(int indexVar);
+    bool vectorialMode();
+    void setSimulOpacity(float val);
+    void setObjOpacity(float val);
     void loadSimulationSystem();
     explicit GLWidget(QWidget *parent = 0);
     ParticleSystem * getSimulationSystem()

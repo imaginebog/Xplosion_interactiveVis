@@ -279,14 +279,18 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
 {
     motion(event->x(),event->y());
 }
+void GLWidget::setCurrentFrame(int indFrame)
+{
+    makeCurrent();
+    psystem->setCurrentFrame(indFrame);
+}
+int GLWidget::getNumFrames()
+{
+    return psystem->nframes;
+}
+
 void GLWidget::keyPressEvent(QKeyEvent *event)
 {
-//    if(notFlushed)
-//    {
-//        isNewKey=true;
-//        newKey=event->key();
-//        return;
-//    }
     switch (event->key()) {
     case Qt::Key_Escape:
         key('\033',0,0);
@@ -937,6 +941,25 @@ void GLWidget::motion(int x, int y) {
     update();
 }
 
+void GLWidget::changeCurrentVar(int indexVar)
+{
+    psystem->changeActiveVariable(indexVar);
+    if (psystem->currentVariable == ParticleSystem::VAR_VELOCITY) {
+        psystem->reset(ParticleSystem::CONFIG_SIMULATION_DATA_VEL);
+        displayMode = ParticleRenderer::PARTICLE_ARROWS;
+    } else{
+        psystem->reset(ParticleSystem::CONFIG_SIMULATION_DATA);
+        displayMode = ParticleRenderer::PARTICLE_SPHERES;
+    }
+    refreshLegend();
+}
+bool GLWidget::vectorialMode()
+{
+    if(psystem->currentVariable==ParticleSystem::VAR_VELOCITY)
+        return true;
+    else return false;
+}
+
 void GLWidget::key(unsigned char k, int /*x*/, int /*y*/) {
     char kMayus = k;
     if (k > 96)
@@ -952,7 +975,7 @@ void GLWidget::key(unsigned char k, int /*x*/, int /*y*/) {
         if (psystem->currentVariable == ParticleSystem::VAR_VELOCITY) {
             psystem->reset(ParticleSystem::CONFIG_SIMULATION_DATA_VEL);
             displayMode = ParticleRenderer::PARTICLE_ARROWS;
-        } else if (psystem->currentVariable == 0) {
+        } else {
             psystem->reset(ParticleSystem::CONFIG_SIMULATION_DATA);
             displayMode = ParticleRenderer::PARTICLE_SPHERES;
         }
@@ -1036,12 +1059,45 @@ void GLWidget::key(unsigned char k, int /*x*/, int /*y*/) {
         gp << "exit\n";
         exit(EXIT_SUCCESS);
         break;
+
+    case 'F':
+        displayMode = (ParticleRenderer::DisplayMode) ParticleRenderer::PARTICLE_POINTS;
+        break;
+    case 'G':
+        displayMode = (ParticleRenderer::DisplayMode) ParticleRenderer::PARTICLE_SPHERES;
+        break;
+    case 'B':
+        displayMode = (ParticleRenderer::DisplayMode) ParticleRenderer::PARTICLE_FLAT_SPHERES;
+        break;
+    case 'N':
+        if (psystem->currentVariable == ParticleSystem::VAR_VELOCITY) {
+            displayMode = (ParticleRenderer::DisplayMode) ParticleRenderer::PARTICLE_ARROWS;
+        }
+        break;
     }
 
     demoMode = false;
     idleCounter = 0;
     update();
 }
+void GLWidget::setSimulOpacity(float val)
+{
+    if(val>=0&&val<=1)
+    {
+        obj_alpha=val;
+    }
+    update();
+
+}
+void GLWidget::setObjOpacity(float val)
+{
+    if(val>=0&&val<=1)
+    {
+        obj_alpha=val;
+    }
+    update();
+}
+
 
 void GLWidget::idle(void) {
 

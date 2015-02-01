@@ -53,12 +53,11 @@ void SimulUI::on_rbView_toggled(bool checked)
     }
 }
 
-//TODO ampliar key para aceptar modos por separado
 void SimulUI::on_rbSpheres_toggled(bool checked)
 {
     if(checked)
     {
-        QKeyEvent *qev=new QKeyEvent(QEvent::KeyPress,Qt::Key_M,Qt::NoModifier);
+        QKeyEvent *qev=new QKeyEvent(QEvent::KeyPress,Qt::Key_G,Qt::NoModifier);
         simulWid->keyPressEvent(qev);
     }
 
@@ -68,7 +67,7 @@ void SimulUI::on_rbFlatSpheres_toggled(bool checked)
 {
     if(checked)
     {
-        QKeyEvent *qev=new QKeyEvent(QEvent::KeyPress,Qt::Key_M,Qt::NoModifier);
+        QKeyEvent *qev=new QKeyEvent(QEvent::KeyPress,Qt::Key_B,Qt::NoModifier);
         simulWid->keyPressEvent(qev);
     }
 
@@ -78,7 +77,7 @@ void SimulUI::on_rbPoints_toggled(bool checked)
 {
     if(checked)
     {
-        QKeyEvent *qev=new QKeyEvent(QEvent::KeyPress,Qt::Key_M,Qt::NoModifier);
+        QKeyEvent *qev=new QKeyEvent(QEvent::KeyPress,Qt::Key_F,Qt::NoModifier);
         simulWid->keyPressEvent(qev);
     }
 
@@ -88,13 +87,11 @@ void SimulUI::on_rbVectors_toggled(bool checked)
 {
     if(checked)
     {
-        QKeyEvent *qev=new QKeyEvent(QEvent::KeyPress,Qt::Key_M,Qt::NoModifier);
+        QKeyEvent *qev=new QKeyEvent(QEvent::KeyPress,Qt::Key_N,Qt::NoModifier);
         simulWid->keyPressEvent(qev);
     }
 
 }
-//end TODO
-
 
 void SimulUI::on_butPlayStopAxis_clicked()
 {
@@ -193,19 +190,40 @@ void SimulUI::on_butPlayPauseTime_clicked()
 
 void SimulUI::on_sliderOpacitySimul_sliderReleased()
 {
-    //TODO change opacity (new func)
+    float valor=ui->sliderOpacitySimul->value();
+    simulWid->setSimulOpacity(valor/100);
 }
 
 void SimulUI::on_sliderOpacityObj_sliderReleased()
 {
-    //TODO change obj opacity (new func)
+    float valor=ui->sliderOpacityObj->value();
+    simulWid->setObjOpacity(valor/100);
 }
 
 void SimulUI::on_cbCurrentVar_currentIndexChanged(int index)
 {
-    //TODO change var with var index
-    QKeyEvent *qev=new QKeyEvent(QEvent::KeyPress,Qt::Key_X,Qt::NoModifier);
-    simulWid->keyPressEvent(qev);
+
+    //QKeyEvent *qev=new QKeyEvent(QEvent::KeyPress,Qt::Key_X,Qt::NoModifier);
+    //simulWid->keyPressEvent(qev);
+    printf("change var to %d\n",index);
+    fflush(stdout);
+    simulWid->changeCurrentVar(index);
+    if(simulWid->vectorialMode())
+    {
+        ui->rbPoints->setEnabled(false);
+        ui->rbSpheres->setEnabled(false);
+        ui->rbFlatSpheres->setEnabled(false);
+        ui->rbVectors->setEnabled(true);
+        ui->rbVectors->setChecked(true);
+    }
+    else
+    {
+        ui->rbPoints->setEnabled(true);
+        ui->rbSpheres->setEnabled(true);
+        ui->rbFlatSpheres->setEnabled(true);
+        ui->rbVectors->setEnabled(false);
+        ui->rbFlatSpheres->setChecked(true);
+    }
     ui->scaleWidget->refreshLegend();
 }
 
@@ -213,4 +231,17 @@ void SimulUI::on_butResetView_clicked()
 {
     QKeyEvent *qev=new QKeyEvent(QEvent::KeyPress,Qt::Key_R,Qt::NoModifier);
     simulWid->keyPressEvent(qev);
+}
+
+void SimulUI::on_butStopTime_clicked()
+{
+    simulWid->setCurrentFrame(0);
+}
+
+void SimulUI::on_sliderTime_sliderReleased()
+{
+    //TODO released event is not enough, and time slider isn't updating with buttons or simul view interaction!
+    float valor=ui->sliderTime->value();
+    int nfram=valor*simulWid->getNumFrames()/100;
+    simulWid->setCurrentFrame(nfram);
 }

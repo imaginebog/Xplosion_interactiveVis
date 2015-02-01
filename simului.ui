@@ -462,11 +462,6 @@
        <string>&gt; / ||</string>
       </property>
      </widget>
-     <zorder>rbXAxis</zorder>
-     <zorder>rbYAxis</zorder>
-     <zorder>rbZAxis</zorder>
-     <zorder>butPlayStopAxis</zorder>
-     <zorder>scaleWidget</zorder>
     </widget>
    </widget>
    <widget class="QGroupBox" name="groupBox_3">
@@ -502,7 +497,7 @@
       <string>&gt; / ||</string>
      </property>
     </widget>
-    <widget class="QPushButton" name="pushButton_5">
+    <widget class="QPushButton" name="butStopTime">
      <property name="geometry">
       <rect>
        <x>10</x>
@@ -515,7 +510,7 @@
       <string>o</string>
      </property>
     </widget>
-    <widget class="QSlider" name="horizontalSlider">
+    <widget class="QSlider" name="sliderTime">
      <property name="geometry">
       <rect>
        <x>100</x>

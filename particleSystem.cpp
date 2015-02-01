@@ -564,11 +564,11 @@ void ParticleSystem::setCurrentFrame(int newframe) {
 	}
 	else if(newframe<0)
 	{
-		currentFrame=nframes-1;
+        currentFrame=nframes-1;
 	}
 	else
 	{
-		currentFrame=0;
+        currentFrame=0;
 	}
 	updateFrame();
 
@@ -779,12 +779,28 @@ void ParticleSystem::changeActiveVariable() {
 	//TODO Another probem is the velocity variables... keep in mind!!
 
 	fflush(stdout);
-	int comp = (int) _NUM_VARIABLES;
-	printf("comp: %d", comp);
+    int comp = (int) _NUM_VARIABLES;
 	currentVariable = (currentVariable < (comp - 1)) ? currentVariable + 1 : 0;
 	printf("current:%d, numvars:%d", currentVariable, comp);
 
 	updateColor();
+
+}
+
+void ParticleSystem::changeActiveVariable(int indexvar) {
+    //TODO iterate over available variables (should be a matrix, not named arrays + an array with the name of each variable.
+    //Only fixed are x,y,z,vx,vy,vz... anything else could be even calculated
+    //TODO Another probem is the velocity variables... keep in mind!!
+
+    fflush(stdout);
+    int comp = (int) _NUM_VARIABLES;
+    if(indexvar<comp)
+    {
+        currentVariable=indexvar;
+    }
+    printf("current:%d, numvars:%d", currentVariable, comp);
+
+    updateColor();
 
 }
 

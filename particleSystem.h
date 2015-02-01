@@ -31,7 +31,8 @@
 #define PATH_INI	"../tesis_ui"
 #define PATH_INI2	"/home/cxnv/workspace/Simulator"
 #define OBJ_PATH	PATH_INI"/data/models3d/volumen.obj"
-#define DATAFILE_PATH	PATH_INI"/data/datos.csv"
+//#define DATAFILE_PATH	PATH_INI"/data/datos.csv"
+#define DATAFILE_PATH	PATH_INI"/data/datatimed.csv"
 
 #define MAX_INT 2147483648
 #define MAX_ITERATIONS 50
@@ -49,7 +50,7 @@ public:
     ParticleSystem() {
     }
 
-
+    int nframes,currentFrame;
 	bool clipped;
 	int currentVariable;
 	int colorRangeMode;
@@ -170,6 +171,7 @@ public:
 		setCurrentFrame(currentFrame - 1);
 	}
 	void changeActiveVariable();
+    void changeActiveVariable(int iv);
 	void setAlpha(float al);
 	void setClipped(bool cl) {
 		clipped = cl;
@@ -365,7 +367,7 @@ protected:
 	float * temp;
 	float * pressureArray;
 	velocity * velArray;
-    int nframes,currentFrame;
+
 
 	int tamMax;
 	float xmax, ymax, zmax;
