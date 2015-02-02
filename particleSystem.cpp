@@ -107,9 +107,102 @@ void ParticleSystem::initConstants()
     highColor = (float*) calloc(3, sizeof(float));
     lowColor = (float*) calloc(3, sizeof(float));
     currentCutter=0;
-    totalValuesScale=4;
     nframes = 0;
     currentFrame = 0;
+}
+
+void ParticleSystem::loadColorConfiguration()
+{
+    insertColorValue(lowColor,tmin,VAR_TEMPERATURE);
+    insertColorValue(gradientInitialColor,n_tmin,VAR_TEMPERATURE);
+    insertColorValue(gradientFinalColor,n_tmax,VAR_TEMPERATURE);
+    insertColorValue(highColor,tmax,VAR_TEMPERATURE);
+
+    insertColorValue(lowColor,pmin,VAR_PRESSURE);
+    insertColorValue(gradientInitialColor,n_pmin,VAR_PRESSURE);
+    insertColorValue(gradientFinalColor,n_pmax,VAR_PRESSURE);
+    insertColorValue(highColor,pmax,VAR_PRESSURE);
+
+    insertColorValue(lowColor,vmin,VAR_VELOCITY);
+    insertColorValue(gradientInitialColor,n_vmin,VAR_VELOCITY);
+    insertColorValue(gradientFinalColor,n_vmax,VAR_VELOCITY);
+    insertColorValue(highColor,vmax,VAR_VELOCITY);
+
+    updateColor();
+}
+
+void ParticleSystem::insertColorValue(float * newColor,float newValue, int indexVar)
+{
+    int range=0;
+    float valAnt;
+    ColorValue *newcv=(ColorValue*)calloc(1,sizeof(ColorValue));
+    newcv->colorRGB=newColor;
+    newcv->value=newValue;
+    newcv->hidden=false;
+
+    switch (indexVar) {
+    case VAR_TEMPERATURE:
+        valAnt=colorsTemp[range].value;
+        while(newValue>valAnt&&range<ncolorsTemp)
+        {
+            range++;
+            if(range<ncolorsTemp)
+                valAnt=colorsTemp[range].value;
+        }
+        if(range<ncolorsTemp)
+        {
+            int indReorder=ncolorsTemp;
+            for(indReorder=ncolorsTemp;indReorder>range;indReorder--)
+            {
+                colorsTemp[indReorder]=colorsTemp[indReorder-1];
+            }
+        }
+        colorsTemp[range]=*newcv;
+
+        ncolorsTemp++;
+        break;
+    case VAR_PRESSURE:
+        valAnt=colorsPress[range].value;
+        while(newValue>valAnt&&range<ncolorsPress)
+        {
+            range++;
+            if(range<ncolorsPress)
+                valAnt=colorsPress[range].value;
+        }
+        if(range<ncolorsPress)
+        {
+            int indReorder=ncolorsPress;
+            for(indReorder=ncolorsPress;indReorder>range;indReorder--)
+            {
+                colorsPress[indReorder]=colorsPress[indReorder-1];
+            }
+        }
+        colorsPress[range]=*newcv;
+
+        ncolorsPress++;
+        break;
+    case VAR_VELOCITY:
+        valAnt=colorsVel[range].value;
+        while(newValue>valAnt&&range<ncolorsVel)
+        {
+            range++;
+            if(range<ncolorsVel)
+                valAnt=colorsVel[range].value;
+        }
+        if(range<ncolorsVel)
+        {
+            int indReorder=ncolorsVel;
+            for(indReorder=ncolorsVel;indReorder>range;indReorder--)
+            {
+                colorsVel[indReorder]=colorsVel[indReorder-1];
+            }
+        }
+        colorsVel[range]=*newcv;
+
+        ncolorsVel++;
+        break;
+    }
+
 }
 
 ParticleSystem::ParticleSystem(bool bUseOpenGL) :
@@ -120,6 +213,12 @@ ParticleSystem::ParticleSystem(bool bUseOpenGL) :
 												0) {
     initConstants();
 	colorRangeMode = COLOR_GRADIENT;
+    ncolorsTemp=0;
+    ncolorsPress=0;
+    ncolorsVel=0;
+    colorsTemp=(ColorValue*)calloc(15,sizeof(ColorValue));
+    colorsPress=(ColorValue*)calloc(15,sizeof(ColorValue));
+    colorsVel=(ColorValue*)calloc(15,sizeof(ColorValue));
 
 	gradientInitialColor = new float[3] { 1, 1, 0 }; //{1,1,0};//yellow default
 	gradientFinalColor = new float[3] { 1, 0, 0 }; //{1,0,0};//red default
@@ -186,11 +285,9 @@ void ParticleSystem::initCutters2()
 
 char* ParticleSystem::getColor(float valor) {
 
-    //if(colorRangeMode==COLOR_GRADIENT)//{do this... } else {.. too (for now)} //TODO!
-    float *cini;// = gradientInitialColor;
-    float *cfin;// = gradientFinalColor;
-
-
+    //TODO Change to use new model ColorValue
+    float *cini;
+    float *cfin;
     float* r=(float*)calloc(3,sizeof(float));
 
     float varNorm = 0; //in [0,1]
@@ -313,120 +410,85 @@ char* ParticleSystem::getColor(float valor) {
     return &stream.str()[0];
 }
 
-
 int ParticleSystem::colorVar(int index, float *r) {
+    float *cini;// = gradientInitialColor;
+    float *cfin;// = gradientFinalColor;
+    float varNorm = 0; //in [0,1]
+    int range=0;//index in colors array
+    float valIni,valFin,valNext;
 
-	//if(colorRangeMode==COLOR_GRADIENT)//{do this... } else {.. too (for now)} //TODO!
-	float *cini;// = gradientInitialColor;
-	float *cfin;// = gradientFinalColor;
+    switch (currentVariable) {
+    case VAR_TEMPERATURE:
+        valNext=colorsTemp[range+1].value;
+        while(temp[index]>valNext)
+        {
+            range++;
+            valNext=colorsTemp[range+1].value;
+        }
+        valIni=colorsTemp[range].value;
+        valFin=colorsTemp[range+1].value;
+        varNorm = (temp[index] - valIni) / (valFin - valIni);
+        cini=colorsTemp[range].colorRGB;
+        cfin=colorsTemp[range+1].colorRGB;
+        break;
+    case VAR_PRESSURE:
+        valNext=colorsPress[range+1].value;
+        while(pressureArray[index]>valNext)
+        {
+            range++;
+            valNext=colorsPress[range+1].value;
+        }
+        valIni=colorsPress[range].value;
+        valFin=colorsPress[range+1].value;
+        varNorm = (pressureArray[index] - valIni) / (valFin - valIni);
+        cini=colorsPress[range].colorRGB;
+        cfin=colorsPress[range+1].colorRGB;
+        break;
+    case VAR_VELOCITY:
+        valNext=colorsVel[range+1].value;
+        while(velArray[index].magnitude>valNext)
+        {
+            range++;
+            valNext=colorsVel[range+1].value;
+        }
+        valIni=colorsVel[range].value;
+        valFin=colorsVel[range+1].value;
+        varNorm = (velArray[index].magnitude - valIni) / (valFin - valIni);
+        cini=colorsVel[range].colorRGB;
+        cfin=colorsVel[range+1].colorRGB;
+        break;
+    }
 
+    float difr = cfin[0] - cini[0];
+    float difg = cfin[1] - cini[1];
+    float difb = cfin[2] - cini[2];
 
+    float varPrima = varNorm;
+    float colorMin = cini[0];
+    if (difr < 0) {
+        difr = -difr;
+        varPrima = 1 - varPrima;
+        colorMin = cfin[0];
+    }
+    r[0] = varPrima * difr + colorMin;
+    varPrima = varNorm;
+    colorMin = cini[1];
+    if (difg < 0) {
+        difg = -difg;
+        varPrima = 1 - varPrima;
+        colorMin = cfin[1];
+    }
+    r[1] = varPrima * difg + colorMin;
 
-	float varNorm = 0; //in [0,1]
-	int range=1;
-
-	switch (currentVariable) {
-	case VAR_TEMPERATURE:
-		if(temp[index]>=n_tmin&&temp[index]<=n_tmax)
-			{
-			varNorm = (temp[index] - n_tmin) / (n_tmax - n_tmin);
-			range=1;
-			}
-		else if(temp[index]<n_tmin)
-			{
-			varNorm = (temp[index] - tmin) / (n_tmin - tmin);
-			range=0;
-			}
-		else if(temp[index]>n_tmax)
-			{
-			varNorm = (temp[index] - n_tmax) / (tmax - n_tmax);
-			range=2;
-			}
-		break;
-	case VAR_PRESSURE:
-		//varNorm = (pressureArray[index] - pmin) / (pmax - pmin);
-		if(pressureArray[index]>=n_pmin&&pressureArray[index]<=n_pmax)
-		{
-			varNorm = (pressureArray[index] - n_pmin) / (n_pmax - n_pmin);
-			range=1;
-		}
-		else if(pressureArray[index]<n_pmin)
-		{
-			varNorm = (pressureArray[index] - pmin) / (n_pmin - pmin);
-			range=0;
-		}
-		else if(pressureArray[index]>n_pmax)
-		{
-			varNorm = (pressureArray[index] - n_pmax) / (pmax - n_pmax);
-			range=2;
-		}
-
-		break;
-	case VAR_VELOCITY:
-		//varNorm=velArray[index].magnitude/vmax;
-		if(velArray[index].magnitude>=n_vmin&&velArray[index].magnitude<=n_vmax)
-		{
-			varNorm = (velArray[index].magnitude - n_vmin) / (n_vmax - n_vmin);
-			range=1;
-		}
-		else if(velArray[index].magnitude<n_vmin)
-		{
-			varNorm = (velArray[index].magnitude - vmin) / (n_vmin - vmin);
-			range=0;
-		}
-		else if(velArray[index].magnitude>n_pmax)
-		{
-			varNorm = (velArray[index].magnitude - n_vmax) / (vmax - n_vmax);
-			range=2;
-		}
-	}
-
-	switch(range)
-	{
-	case 0:
-		cini=lowColor;
-		cfin=gradientInitialColor;
-		break;
-	case 1:
-		cini=gradientInitialColor;
-		cfin=gradientFinalColor;
-		break;
-	case 2:
-		cini=gradientFinalColor;
-		cfin=highColor;
-		break;
-	}
-
-	float difr = cfin[0] - cini[0];
-	float difg = cfin[1] - cini[1];
-	float difb = cfin[2] - cini[2];
-
-	float varPrima = varNorm;
-	float colorMin = cini[0];
-	if (difr < 0) {
-		difr = -difr;
-		varPrima = 1 - varPrima;
-		colorMin = cfin[0];
-	}
-	r[0] = varPrima * difr + colorMin;
-	varPrima = varNorm;
-	colorMin = cini[1];
-	if (difg < 0) {
-		difg = -difg;
-		varPrima = 1 - varPrima;
-		colorMin = cfin[1];
-	}
-	r[1] = varPrima * difg + colorMin;
-
-	varPrima = varNorm;
-	colorMin = cini[2];
-	if (difr < 0) {
-		difb = -difb;
-		varPrima = 1 - varPrima;
-		colorMin = cfin[2];
-	}
-	r[2] = varPrima * difb + colorMin;
-	return range;
+    varPrima = varNorm;
+    colorMin = cini[2];
+    if (difr < 0) {
+        difb = -difb;
+        varPrima = 1 - varPrima;
+        colorMin = cfin[2];
+    }
+    r[2] = varPrima * difb + colorMin;
+    return range;
 }
 
 void colorRamp(float t, float *r) {
@@ -482,8 +544,7 @@ void ParticleSystem::_initialize(int numParticles) {
 		m_temperatureColor = createVBO(m_numParticles * 4 * sizeof(float));
 		registerGLBufferObject(m_colorVBO, &m_cuda_colorvbo_resource);
 		registerGLBufferObject(m_colorVBO_vect, &m_cuda_colorvbo_vect_resource);
-		initialSimulationColor();
-	} else {
+        } else {
 		checkCudaErrors(
 				cudaMalloc((void ** )&m_cudaColorVBO,
 						sizeof(float) * numParticles * 4));
@@ -495,43 +556,6 @@ void ParticleSystem::_initialize(int numParticles) {
 	m_bInitialized = true;
 }
 
-void ParticleSystem::initialSimulationColor() {
-	//TODO ... make this only once, then just assign data=precalculated data
-	// fill color buffer
-    glBindBufferARB(GL_ARRAY_BUFFER, m_colorVBO);
-	float *data = (float *) glMapBufferARB(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
-	float *ptr = data;
-
-	printf("inicia color");
-	struct timeval start, end;
-	long mtime, seconds, useconds;
-
-	gettimeofday(&start, NULL);
-
-	for (uint i = 0; i < m_numParticles; i++) {
-		float t = i / (float) m_numParticles;
-
-		if (m_numParticles > 1)
-			colorVar(i, ptr);	//colorVariable(i, ptr);
-		else
-			colorRamp(t, ptr);		//here is the color initialization
-		ptr += 3;
-
-		*ptr++ = alpha;
-	}
-
-	gettimeofday(&end, NULL);
-
-	seconds = end.tv_sec - start.tv_sec;
-	useconds = end.tv_usec - start.tv_usec;
-
-	mtime = ((seconds) * 1000 + useconds / 1000.0) + 0.5;
-
-	printf("\nElapsed time color: %ld milliseconds\n", mtime);
-
-	glUnmapBufferARB(GL_ARRAY_BUFFER);
-	printf("\nunmapped arb");
-}
 void ParticleSystem::setAlpha(float al) {
 	alpha = al;
 
@@ -583,8 +607,6 @@ void ParticleSystem::updateColor() {
     }
 	// fill color buffer
     glBindBufferARB(GL_ARRAY_BUFFER_ARB, m_colorVBO);
-    //this... avoid segmentation fault but! ui is blank!!
-    //TODO include makeCurrent() here! (call exposed method in glwidget)
     float *ptr = (float *) glMapBufferARB(GL_ARRAY_BUFFER_ARB, GL_WRITE_ONLY_ARB);
 
     printf("\nupdateColor... &ptr: %d; *ptr: %f; ptr: %d\n\n",&ptr,*ptr,ptr);
@@ -593,7 +615,16 @@ void ParticleSystem::updateColor() {
 	if (!clipped) {
 		for (uint i = 0; i < m_numParticles; i++) {
 
-			int rango=colorVar(i, ptr);	//colorVariable(i, ptr);
+            int rango=colorVar(i, ptr);
+            float* ficti=(float*)malloc(4*sizeof(float));
+            int rango2=colorVarPre(i,ficti);
+
+            if(rango2!=rango)
+            {
+                printf("rango!=rango2 (%d!=%d)... i:%d, *ptr:(%f,%f,%f), *ficti:(%f,%f,%f)\n",
+                       rango,rango2,i,*ptr,*(ptr+1),*(ptr+2),*ficti,*(ficti+1),*(ficti+2));
+                fflush(stdout);
+            }
 			ptr += 3;
 			switch(rango)
 			{
@@ -674,26 +705,26 @@ void ParticleSystem::updateColor() {
 					&& m_hPos[i * 4 + 1] < rightUpFront.y
 					&& m_hPos[i * 4 + 2] > leftDownBack.z
 					&& m_hPos[i * 4 + 2] < rightUpFront.z) {
-				int rango=colorVar(i, ptr);
+                int range=colorVar(i, ptr);
 				ptr += 3;
-				switch(rango)
-				{
-				case 0:
-					if(displayLow)
-						*ptr++ = alpha;
-					else *ptr++ = 0;
-					break;
-				case 1:
-					if(displayMiddle)
-						*ptr++ = alpha;
-					else *ptr++ = 0;
-					break;
-				case 2:
-					if(displayHigh)
-						*ptr++ = alpha;
-					else *ptr++ = 0;
-					break;
-				}
+
+                switch (currentVariable) {
+                case VAR_TEMPERATURE:
+                    if(colorsTemp[range].hidden)
+                        *ptr++=0;
+                    else *ptr++=alpha;
+                    break;
+                case VAR_PRESSURE:
+                    if(colorsPress[range].hidden)
+                        *ptr++=0;
+                    else *ptr++=alpha;
+                    break;
+                case VAR_VELOCITY:
+                    if(colorsVel[range].hidden)
+                        *ptr++=0;
+                    else *ptr++=alpha;
+                    break;
+                }
 			} else {
 				ptr += 3;
 				*ptr++ = 0;
@@ -716,7 +747,7 @@ void ParticleSystem::updateColorVect() {
 			int al=rand()%100;
 
 			for (int i2 = 0; i2 < 2; ++i2) {
-				colorVar(i, ptr);	//colorVariable(i, ptr);
+                colorVar(i, ptr);
 				ptr += 3;
 				*ptr++ = al<2?alpha:0;
 			}
@@ -757,10 +788,11 @@ void ParticleSystem::updateColorVect() {
 					&& m_hPos[i * 8 + 2] > leftDownBack.z
 					&& m_hPos[i * 8 + 2] < rightUpFront.z) {
 				for (int i2 = 0; i2 < 2; ++i2) {
-					colorVar(i, ptr);	//colorVariable(i, ptr);
+                    colorVar(i, ptr);
 					ptr += 3;
 					//*ptr++ = alpha;
 					*ptr++ = al<2?alpha:0;
+                    //TODO This is not updating filters by value/ranges
 				}
 			} else {
 				for (int i2 = 0; i2 < 2; ++i2) {

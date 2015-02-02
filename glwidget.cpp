@@ -115,6 +115,7 @@ void GLWidget::loadSimulationSystem()
 
     initSimulationSystem(true, datafilepath);
     colorConfig(colorconfigpath);
+    psystem->loadColorConfiguration();
     initParams();
     refreshLegend();
 
@@ -419,7 +420,7 @@ void GLWidget::special2(uint keyP)
 
 void GLWidget::refreshLegend()
 {
-    lenCol=psystem->totalValuesScale;
+    lenCol=psystem->getTotalColorValues();
     coloresScale=psystem->getColorsScale();
     currentVarName=psystem->getCurrentVarName();
     valoresScale=psystem->getValuesScale();

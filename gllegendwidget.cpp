@@ -52,7 +52,7 @@ void GLLegendWidget::refreshLegend()
 {
     if(psysteminitialized)
     {
-        lenCol=psystem->totalValuesScale;
+        lenCol=psystem->getTotalColorValues();
         coloresScale=psystem->getColorsScale();
         currentVarName=psystem->getCurrentVarName();
         valoresScale=psystem->getValuesScale();

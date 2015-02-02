@@ -31,8 +31,8 @@
 #define PATH_INI	"../tesis_ui"
 #define PATH_INI2	"/home/cxnv/workspace/Simulator"
 #define OBJ_PATH	PATH_INI"/data/models3d/volumen.obj"
-//#define DATAFILE_PATH	PATH_INI"/data/datos.csv"
-#define DATAFILE_PATH	PATH_INI"/data/datatimed.csv"
+#define DATAFILE_PATH	PATH_INI"/data/datos.csv"
+//#define DATAFILE_PATH	PATH_INI"/data/datatimed.csv"
 
 #define MAX_INT 2147483648
 #define MAX_ITERATIONS 50
@@ -66,6 +66,23 @@ public:
     float* gradientFinalColor;
     float* highColor;
     float* lowColor;
+
+    //TODO refactor when variables are indexed!
+    int ncolorsTemp;
+    int ncolorsPress;
+    int ncolorsVel;
+    struct ColorValue
+    {
+        float* colorRGB=(float*)calloc(3,sizeof(float));
+        float value;
+        bool hidden=false;//TODO set hidden according to UI
+    };
+    ColorValue* colorsTemp;
+    ColorValue* colorsPress;
+    ColorValue* colorsVel;
+
+    void loadColorConfiguration();
+    void insertColorValue(float * newColor,float newValue, int indexVar);
 
 	enum FixedVariables {
 		VAR_TEMPERATURE, VAR_PRESSURE, VAR_VELOCITY, _NUM_VARIABLES
@@ -101,8 +118,6 @@ public:
 	void rewindCutterZ();
 	void advanceCutter();
 
-
-    int totalValuesScale;
     char const * getCurrentVarName()
 	{
 		switch(currentVariable)
@@ -116,34 +131,82 @@ public:
 		}
 		return "";
 	}
+    int getTotalColorValues()
+    {
+        switch(currentVariable)
+        {
+            case VAR_TEMPERATURE: return ncolorsTemp;
+            case VAR_PRESSURE: return ncolorsPress;
+            case VAR_VELOCITY: return ncolorsVel;
+        }
+    }
+
 	float** getColorsScale()
 	{
+        /*
 		float** coloresScale=(float**)calloc(totalValuesScale,sizeof(float*));
-		printf("coloresscaledone\n");
-		fflush(stdout);
-		coloresScale[0]=lowColor;
+        coloresScale[0]=lowColor;
 		coloresScale[1]=gradientInitialColor;
 		coloresScale[2]=gradientFinalColor;
 		coloresScale[3]=highColor;
 		return coloresScale;
+        */
+        float** colorsScale;
+
+        switch(currentVariable)
+        {
+        case VAR_TEMPERATURE:
+            colorsScale=(float**)calloc(ncolorsTemp,sizeof(float*));
+            for (int var = 0; var < ncolorsTemp; ++var) {
+                colorsScale[var]=colorsTemp[var].colorRGB;
+            }
+            break;
+        case VAR_PRESSURE:
+            colorsScale=(float**)calloc(ncolorsPress,sizeof(float*));
+            for (int var = 0; var < ncolorsPress; ++var) {
+                colorsScale[var]=colorsPress[var].colorRGB;
+            }
+            break;
+        case VAR_VELOCITY:
+            colorsScale=(float**)calloc(ncolorsVel,sizeof(float*));
+            for (int var = 0; var < ncolorsVel; ++var) {
+                colorsScale[var]=colorsVel[var].colorRGB;
+            }
+            break;
+        }
+
+        return colorsScale;
 
 	}
 	float* getValuesScale()
 	{
-		switch(currentVariable)
-		{
-		case 0:
-			return new float[4]{tmin,n_tmin,n_tmax,tmax};
-		case 1:
-			return new float[4]{pmin,n_pmin,n_pmax,pmax};
-		case 2:
-			return new float[4]{vmin,n_vmin,n_vmax,vmax};
-		}
-        return new float[0];
+        float* valuesScale;
 
-	}
-	//TODO quitar después, es temporal
-	void initialSimulationColor();
+        switch(currentVariable)
+        {
+        case VAR_TEMPERATURE:
+            valuesScale=(float*)calloc(ncolorsTemp,sizeof(float*));
+            for (int var = 0; var < ncolorsTemp; ++var) {
+                valuesScale[var]=colorsTemp[var].value;
+            }
+            break;
+        case VAR_PRESSURE:
+            valuesScale=(float*)calloc(ncolorsPress,sizeof(float*));
+            for (int var = 0; var < ncolorsPress; ++var) {
+                valuesScale[var]=colorsPress[var].value;
+            }
+            break;
+        case VAR_VELOCITY:
+            valuesScale=(float*)calloc(ncolorsVel,sizeof(float*));
+            for (int var = 0; var < ncolorsVel; ++var) {
+                valuesScale[var]=colorsVel[var].value;
+            }
+            break;
+        }
+
+        return valuesScale;
+
+    }
 	void updateColor();
 	void updateColorVect();
 	void updateFrame();
@@ -208,30 +271,29 @@ public:
 		colorRangeMode = mode;
 	}
 	void setColorInitialGradient(float* ini) {
-		gradientInitialColor = ini;
-		updateColor();
+        gradientInitialColor = ini;
+        //updateColor();
 	}
 	void setColorFinalGradient(float* fini) {
 		gradientFinalColor = fini;
-		updateColor();
+        //updateColor();
 
 	}
 	void setColorWarningHigh(float* fini) {
 		highColor = fini;
 		printf("\nhighcolor: (%f,%f,%f)\n",fini[0],fini[1],fini[2]);
-		updateColor();
+        //updateColor();
 
 	}
 	void setColorWarningLow(float* fini) {
 		lowColor = fini;
 		printf("\nlowcolor: (%f,%f,%f)\n",fini[0],fini[1],fini[2]);
-		updateColor();
+        //updateColor();
 
 	}
 
-	void colorTemperature(int t, float* r);
-	void colorVariable(int t, float* r);
-	int colorVar(int t, float* r);/* return range*/
+    void colorTemperature(int t, float* r);
+    int colorVar(int t, float* r);/* return range*/
     char* getColor(float valor);
 	void setFileSource(string filePath);
 	void update(float deltaTime);
