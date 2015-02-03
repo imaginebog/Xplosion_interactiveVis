@@ -41,6 +41,12 @@
 // Particle system class
 class ParticleSystem {
 
+    struct ColorValue
+    {
+        float* colorRGB=(float*)calloc(3,sizeof(float));
+        float value;
+        bool hidden=false;//TODO set hidden according to UI
+    };
 private:
     void initConstants();
 public:
@@ -71,12 +77,6 @@ public:
     int ncolorsTemp;
     int ncolorsPress;
     int ncolorsVel;
-    struct ColorValue
-    {
-        float* colorRGB=(float*)calloc(3,sizeof(float));
-        float value;
-        bool hidden=false;//TODO set hidden according to UI
-    };
     ColorValue* colorsTemp;
     ColorValue* colorsPress;
     ColorValue* colorsVel;
@@ -207,6 +207,9 @@ public:
         return valuesScale;
 
     }
+    ColorValue getRange(float percentage);
+    int getRangeValue(float val);
+    float getValue(float percentage);
 	void updateColor();
 	void updateColorVect();
 	void updateFrame();

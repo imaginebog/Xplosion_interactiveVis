@@ -131,6 +131,39 @@ void ParticleSystem::loadColorConfiguration()
     updateColor();
 }
 
+
+ParticleSystem::ColorValue ParticleSystem::getRange(float percentage)
+{
+    float value=getValue(percentage);
+    switch(currentVariable)
+    {
+    case VAR_TEMPERATURE:
+        return colorsTemp[getRangeValue(value)];
+        break;
+    case VAR_PRESSURE:
+        return colorsPress[getRangeValue(value)];
+        break;
+    case VAR_VELOCITY:
+        return colorsVel[getRangeValue(value)];
+        break;
+    }
+}
+float ParticleSystem::getValue(float percentage)
+{
+    switch(currentVariable)
+    {
+    case VAR_TEMPERATURE:
+        return (tmax-tmin)*percentage+tmin;
+        break;
+    case VAR_PRESSURE:
+        return (pmax-pmin)*percentage+pmin;
+        break;
+    case VAR_VELOCITY:
+        return (vmax-vmin)*percentage+vmin;
+        break;
+    }
+}
+
 void ParticleSystem::insertColorValue(float * newColor,float newValue, int indexVar)
 {
     int range=0;
@@ -283,6 +316,38 @@ void ParticleSystem::initCutters2()
 		cutterZ.size=make_float3(2,2,0.05);
 	}
 
+int ParticleSystem::getRangeValue(float valor) {
+    int range=0;//index in colors array
+    float valNext;
+
+    switch (currentVariable) {
+    case VAR_TEMPERATURE:
+        valNext=colorsTemp[range+1].value;
+        while(valor>valNext)
+        {
+            range++;
+            valNext=colorsTemp[range+1].value;
+        }
+        break;
+    case VAR_PRESSURE:
+        valNext=colorsPress[range+1].value;
+        while(valor>valNext)
+        {
+            range++;
+            valNext=colorsPress[range+1].value;
+        }
+        break;
+    case VAR_VELOCITY:
+        valNext=colorsVel[range+1].value;
+        while(valor>valNext)
+        {
+            range++;
+            valNext=colorsVel[range+1].value;
+        }
+        break;
+    }
+    return range;
+}
 char* ParticleSystem::getColor(float valor) {
 
     //TODO Change to use new model ColorValue
@@ -616,16 +681,7 @@ void ParticleSystem::updateColor() {
 		for (uint i = 0; i < m_numParticles; i++) {
 
             int rango=colorVar(i, ptr);
-            float* ficti=(float*)malloc(4*sizeof(float));
-            int rango2=colorVarPre(i,ficti);
-
-            if(rango2!=rango)
-            {
-                printf("rango!=rango2 (%d!=%d)... i:%d, *ptr:(%f,%f,%f), *ficti:(%f,%f,%f)\n",
-                       rango,rango2,i,*ptr,*(ptr+1),*(ptr+2),*ficti,*(ficti+1),*(ficti+2));
-                fflush(stdout);
-            }
-			ptr += 3;
+            ptr += 3;
 			switch(rango)
 			{
 			case 0:
@@ -958,16 +1014,15 @@ void ParticleSystem::loadSimulationData(string fileP) {
 	float lasttime = -1;
 	int tam = 0;
 
-//	try{//skip data to accelerate rendering
-//				for (int var = 0; var < 150000; ++var) {
-//					std::getline(data,line);
-//				}
-//
-//			}
-//			catch (int e) {
-//
-//			}
-//			int tempCount=0;
+    try{//skip data to accelerate rendering
+                for (int var = 0; var < 150000; ++var) {
+                    std::getline(data,line);
+                }
+
+            }
+            catch (int e) {
+
+            }
 	while (std::getline(data, line)){//&&tempCount<400000) {
 		//tempCount++;
 		if (tam < 2)

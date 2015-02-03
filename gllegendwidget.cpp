@@ -1,4 +1,5 @@
 #include "gllegendwidget.h"
+#include "colorvaluedialog.h"
 
 
 GLLegendWidget::GLLegendWidget(QWidget *parent) : QOpenGLWidget(parent)
@@ -33,9 +34,23 @@ void GLLegendWidget::mousePressEvent(QMouseEvent *event)
 {
     //TODO
 }
+float* GLLegendWidget::parseColor(char* col)
+{
+    float* ansa=(float*)calloc(3,sizeof(float));
+    ansa[1]=1;
+    return ansa;
+}
 void GLLegendWidget::mouseReleaseEvent(QMouseEvent *event)
 {
-    //TODO
+    printf("y clicked: %d\n",event->y());
+    float percent=event->y()/height();
+    float val=psystem->getValue(percent);
+
+    ColorValueDialog diag(val,parseColor(psystem->getColor(val)));
+    diag.exec();
+    printf("value d: %s",diag.valueDialog.toStdString().c_str());
+    printf("color d: %s",diag.colorDialog.toStdString().c_str());
+    fflush(stdout);
 }
 void GLLegendWidget::mouseMoveEvent(QMouseEvent *event)
 {

@@ -35,6 +35,7 @@ private:
     void paintColorBoxScale(const char *nameVar, float** colors,float* values,int length);
 
     void paintText(QString str,float xStr,float yStr);
+    float* parseColor(char* col);
 
     int lenCol;
     float** coloresScale;
