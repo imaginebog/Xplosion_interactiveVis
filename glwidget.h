@@ -37,6 +37,7 @@ class GLWidget : public QOpenGLWidget
 {
     Q_OBJECT
 public:
+    void refreshView();
     void setCurrentFrame(int indFrame);
     int getNumFrames();
     void changeCurrentVar(int indexVar);
@@ -70,6 +71,10 @@ protected:
 private:
     bool notFlushed;
     void initConstants();
+    bool isResetted();
+    bool reset;
+    bool refresh;
+    int resetCount;
     bool isNewKey;
     uint newKey;
     void special2(uint kp);
@@ -143,7 +148,7 @@ private:
     ParamListGL *params;
     ParamListGL *videoPlayer;
 
-    void *m_font = (void *)  GLUT_BITMAP_8_BY_13;
+    //void *m_font = (void *)  GLUT_BITMAP_8_BY_13;
 
     // Auto-Verification Code
     int frameCheckNumber;
@@ -154,7 +159,7 @@ private:
     const char *sSDKsample;
 
 
-    void refreshLegend();
+    //void refreshLegend();
     void showHistogram();
     void changeObjDrawMode();
     void colorConfig(string configFilePath);
@@ -164,7 +169,7 @@ private:
 
     void computeFPS();
     void glArrayBox(float w, float h, float d);
-    void paintColorBoxScale(const char *nameVar, float** colors,float* values,int length);
+    //void paintColorBoxScale(const char *nameVar, float** colors,float* values,int length);
     void paintBoxCutter();
     void paintPosition(float3 pos);
     void paintCutter(float3 p, float3 tamSel);

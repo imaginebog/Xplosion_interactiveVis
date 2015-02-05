@@ -1,3 +1,4 @@
+#include "simului.h"
 #include "gllegendwidget.h"
 #include "colorvaluedialog.h"
 
@@ -23,44 +24,43 @@ void GLLegendWidget::paintGL() {
 
     glClearColor(0.5f, 0.5f, 0.5f, 1.0f); // Set background color to black and opaque
       glClear(GL_COLOR_BUFFER_BIT);         // Clear the color buffer (background)
-    //refreshLegend();
     paintColorBoxScale(currentVarName,coloresScale,valoresScale,lenCol);
 
     glFlush();
 
 
 }
-void GLLegendWidget::mousePressEvent(QMouseEvent *event)
-{
-    //TODO
-}
-float* GLLegendWidget::parseColor(char* col)
-{
-    float* ansa=(float*)calloc(3,sizeof(float));
-    ansa[1]=1;
-    return ansa;
-}
 void GLLegendWidget::mouseReleaseEvent(QMouseEvent *event)
 {
-    printf("y clicked: %d\n",event->y());
-    float percent=event->y()/height();
-    float val=psystem->getValue(percent);
-
-    ColorValueDialog diag(val,parseColor(psystem->getColor(val)));
-    diag.exec();
-    printf("value d: %s",diag.valueDialog.toStdString().c_str());
-    printf("color d: %s",diag.colorDialog.toStdString().c_str());
-    fflush(stdout);
-}
-void GLLegendWidget::mouseMoveEvent(QMouseEvent *event)
-{
-    //TODO
-}
-void GLLegendWidget::keyPressEvent(QKeyEvent *event)
-{
-    switch (event->key()) {
-
+    if(event->button()==Qt::RightButton)
+    {
+        QMenu myMenu;
+//TODO
+        myMenu.addAction("Menu Item 1");
+        myMenu.addAction("Menu It2");
+        myMenu.addAction("Menu Ite");
+        myMenu.exec(mapToGlobal(event->pos()));
+        return;
     }
+    float percent=(1-((float)event->y())/(float)height())/0.95f;
+    float val=psystem->getValue(percent);
+    printf("y clicked: %d, height: %d, percent:%f,val:%f\n",event->y(),height(),percent,val);
+
+    char* colN=psystem->getColor(val);
+    QString colorn=QString(colN);
+    colorn.replace("0x","#");
+    qDebug()<<colorn;
+    ColorValueDialog diag(val,QColor(colorn));
+    diag.exec();
+    QColor qcol=diag.newColor;
+    float* insCol=(float*)calloc(3,sizeof(float));
+    insCol[0]=(float)qcol.red()/255.0f;
+    insCol[1]=(float)qcol.green()/255.0f;
+    insCol[2]=(float)qcol.blue()/255.0f;
+    psystem->insertColorValue(insCol,diag.newValue,psystem->currentVariable);
+    refreshLegend();
+    //((SimulUI)parentWidget()).updateSimulView();
+    //QThread::msleep(200);
 
 }
 void GLLegendWidget::refreshLegend()
@@ -128,9 +128,8 @@ void GLLegendWidget::paintText(QString str,float xStr,float yStr)
 
 void GLLegendWidget::paintColorBoxScale(const char *nameVar, float** colors,float* values,int length)
 {
-    float heightTotal=1.8f, diffTotal=values[length-1]-values[0];
-    float width=2;
-    float gradHeight = heightTotal/(length-1), gradWidth = 1.8f;
+    float heightTotal=1.9f, diffTotal=values[length-1]-values[0];
+    float gradHeight;// = heightTotal/(length);//-1),
 
     float posY=-1;
     char * testing=(char*)calloc(20,sizeof(char));
@@ -142,9 +141,9 @@ void GLLegendWidget::paintColorBoxScale(const char *nameVar, float** colors,floa
         glBegin(GL_QUADS);
         glColor3fv(col1);
         glVertex2f(-1, posY);
-        glVertex2f(0.6f , posY);
+        glVertex2f(0.4f , posY);
         glColor3fv(col2);
-        glVertex2f(0.6f , posY+gradHeight);
+        glVertex2f(0.4f , posY+gradHeight);
         glVertex2f(-1, posY+gradHeight);
         glEnd();
 
@@ -152,12 +151,12 @@ void GLLegendWidget::paintColorBoxScale(const char *nameVar, float** colors,floa
 
         testing=(char*)calloc(20,sizeof(char));
         snprintf(testing,20,"%.2f",values[var]);
-        paintText(testing,-0.6f,posY);
+        paintText(testing,-0.4f,posY);
 
         posY+=gradHeight;
     }
     testing=(char*)calloc(20,sizeof(char));
     snprintf(testing,20,"%.2f",values[var]);
     paintText(testing,-0.6f,posY);
-    paintText(nameVar,0.9f,posY+0.1f);
+    //paintText(nameVar,0.9f,posY+0.1f);
 }

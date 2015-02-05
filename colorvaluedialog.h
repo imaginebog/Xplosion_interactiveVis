@@ -41,7 +41,8 @@
 #ifndef FINDDIALOG_H
 #define FINDDIALOG_H
 
-#include <QDialog>
+//#include <QDialog>
+#include <QtWidgets>
 
 QT_BEGIN_NAMESPACE
 class QCheckBox;
@@ -59,22 +60,24 @@ class ColorValueDialog : public QDialog
 
 public:
     ColorValueDialog(QWidget *parent = 0);
-    ColorValueDialog(float val, float* color);
+    ColorValueDialog(float val, QColor color);
 
 
     QString valueDialog;
     QString colorDialog;
     float newValue;
-    float* newColor;
+    QColor newColor;
 private:
     QLabel *label;
     QLineEdit *valueEdit;
     QLabel *label2;
-    QLineEdit *colorEdit;
+    QLabel *colorLabel;
     QPushButton *addButton;
+    QPushButton *pickColorButton;
 
 private slots:
     void handleAddButton();
+    void setColor();
 
 };
 //! [0]

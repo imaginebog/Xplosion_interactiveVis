@@ -1,4 +1,4 @@
-#ifndef SIMULUI_H
+ #ifndef SIMULUI_H
 #define SIMULUI_H
 
 #include <QMainWindow>
@@ -20,6 +20,7 @@ public:
     void setSimulSystem(ParticleSystem *ssystem);
     void setSimulWindow(GLWidget *wid);
     void setDefaults();
+    void updateSimulView();
 
 private slots:
     void on_rbView_toggled(bool checked);
@@ -61,6 +62,8 @@ private slots:
     void on_butStopTime_clicked();
 
     void on_sliderTime_sliderReleased();
+
+    void on_pushButton_7_clicked();
 
 private:
     Ui::SimulUI *ui;

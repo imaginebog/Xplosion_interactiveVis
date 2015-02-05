@@ -10,7 +10,6 @@ int main(int argc, char *argv[])
     QApplication a(argc, argv);
     glutInit(&argc, argv);
     GLWidget w;
-    //w.makeCurrent();
     w.setWindowTitle("Xplosion simulation");
     w.show();
 

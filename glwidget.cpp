@@ -117,7 +117,7 @@ void GLWidget::loadSimulationSystem()
     colorConfig(colorconfigpath);
     psystem->loadColorConfiguration();
     initParams();
-    refreshLegend();
+    //refreshLegend();
 
     psystem->demoCutting = false;
     printf("\nantes del obj\n");
@@ -163,16 +163,20 @@ void GLWidget::resizeGL(int wid, int hei)
 {
     reshape(wid,hei);
 }
+bool GLWidget::isResetted()
+{
+    if(camera_trans_lag[0]==camera_trans[0]&&
+            camera_trans_lag[1]==camera_trans[1]&&
+            camera_trans_lag[2]==camera_trans[2]&&
+            camera_rot_lag[0]==camera_rot[0]&&
+            camera_rot_lag[1]==camera_rot[1]&&
+            camera_rot_lag[2]==camera_rot[2])
+        return true;
+    else return false;
+}
+
 void GLWidget::paintGL() {//display()
 
-    if(isNewKey)
-    {
-        glFlush();
-        glFinish();
-        //notFlushed=false;
-        isNewKey=false;
-        special2(newKey);
-    }
     sdkStartTimer(&timer);
 
     // update the simulation
@@ -191,8 +195,18 @@ void GLWidget::paintGL() {//display()
                 * inertia;
         camera_rot_lag[c] += (camera_rot[c] - camera_rot_lag[c]) * inertia;
     }
+    if(reset&&isResetted())
+    {
+        reset=false;
+    }
+//    else if(reset)
+//    {
+//        printf("trans_lag:(%f,%f,%f) vs. (%f,%f,%f)\n",camera_trans_lag[0],camera_trans_lag[1],camera_trans_lag[2],
+//                camera_trans[0],camera_trans[1],camera_trans[2]);
+//        printf("rot_lag:(%f,%f,%f) vs. (%f,%f,%f)\n",camera_rot_lag[0],camera_rot_lag[1],camera_rot_lag[2],
+//                camera_rot[0],camera_rot[1],camera_rot[2]);
+//    }
     glTranslatef(camera_trans_lag[0], camera_trans_lag[1], camera_trans_lag[2]);
-    //TODO Solution:: calibrate axis 3 cuz wasn't working!!!
     glRotatef(camera_rot_lag[0], 1.0, 0.0, 0.0);
     glRotatef(camera_rot_lag[1], 0.0, 1.0, 0.0);
 
@@ -237,7 +251,7 @@ void GLWidget::paintGL() {//display()
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     }
 
-    paintColorBoxScale(currentVarName,coloresScale,valoresScale,lenCol);
+    //paintColorBoxScale(currentVarName,coloresScale,valoresScale,lenCol);
 
     glMatrixMode(GL_MODELVIEW);
     glViewport(0, height * 3 / 4, width * 1 / 4, height * 1 / 4);
@@ -265,7 +279,6 @@ void GLWidget::paintGL() {//display()
     //glutReportErrors();//TODO REPLACE
 
     computeFPS();
-    //glFlush();//TODO es en vano??
 
 }
 void GLWidget::mousePressEvent(QMouseEvent *event)
@@ -288,6 +301,10 @@ void GLWidget::setCurrentFrame(int indFrame)
 int GLWidget::getNumFrames()
 {
     return psystem->nframes;
+}
+void GLWidget::refreshView()
+{
+    refresh=true;
 }
 
 void GLWidget::keyPressEvent(QKeyEvent *event)
@@ -351,6 +368,7 @@ void GLWidget::keyPressEvent(QKeyEvent *event)
         key(event->key(),0,0);
         break;
     }
+    update();
 
 }
 void GLWidget::special(uint keyP)
@@ -417,7 +435,7 @@ void GLWidget::special2(uint keyP)
     }
 
 }
-
+/*
 void GLWidget::refreshLegend()
 {
     lenCol=psystem->getTotalColorValues();
@@ -430,7 +448,7 @@ void GLWidget::refreshLegend()
     printf("valores:(%f,%f,%f,%f)",valoresScale[0],valoresScale[1],valoresScale[2],valoresScale[3]);
     fflush(stdout);
 }
-
+*/
 void GLWidget::showHistogram() {
 
     float widthBar = psystem->width_histogram;
@@ -636,6 +654,7 @@ void GLWidget::glArrayBox(float w, float h, float d) {
 
     glEnd();
 }
+/*
 void GLWidget::paintColorBoxScale(const char *nameVar, float** colors,float* values,int length) {
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_BLEND);
@@ -684,6 +703,7 @@ void GLWidget::paintColorBoxScale(const char *nameVar, float** colors,float* val
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
+*/
 void GLWidget::paintBoxCutter() {
 
     glPushMatrix();
@@ -825,6 +845,7 @@ void GLWidget::resetView() {
     camera_rot[0] = 0;
     camera_rot[1] = 0;
     camera_rot[2] = 0;
+    reset=true;
 }
 
 // transfrom vector by matrix
@@ -944,6 +965,7 @@ void GLWidget::motion(int x, int y) {
 
 void GLWidget::changeCurrentVar(int indexVar)
 {
+    makeCurrent();
     psystem->changeActiveVariable(indexVar);
     if (psystem->currentVariable == ParticleSystem::VAR_VELOCITY) {
         psystem->reset(ParticleSystem::CONFIG_SIMULATION_DATA_VEL);
@@ -952,7 +974,7 @@ void GLWidget::changeCurrentVar(int indexVar)
         psystem->reset(ParticleSystem::CONFIG_SIMULATION_DATA);
         displayMode = ParticleRenderer::PARTICLE_SPHERES;
     }
-    refreshLegend();
+    update();
 }
 bool GLWidget::vectorialMode()
 {
@@ -980,7 +1002,7 @@ void GLWidget::key(unsigned char k, int /*x*/, int /*y*/) {
             psystem->reset(ParticleSystem::CONFIG_SIMULATION_DATA);
             displayMode = ParticleRenderer::PARTICLE_SPHERES;
         }
-        refreshLegend();
+        //refreshLegend();
 
         break;
 
@@ -1110,6 +1132,7 @@ void GLWidget::idle(void) {
             psystem->advanceCutter();
             demoCounter = 0;
         }
+        update();
     }
     if (playMode) {
         playCounter++;
@@ -1119,8 +1142,26 @@ void GLWidget::idle(void) {
             psystem->forward();
             playCounter = 0;
         }
+        update();
     }
-    update();
+    else if(reset)
+    {
+        resetCount++;
+        if(resetCount>120)
+        {
+            reset=false;
+            resetCount=0;
+        }
+        update();
+    }
+
+    if(refresh)
+    {
+        refresh=false;
+        makeCurrent();
+        psystem->updateColor();
+        update();
+    }
 
 }
 

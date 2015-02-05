@@ -680,26 +680,25 @@ void ParticleSystem::updateColor() {
 	if (!clipped) {
 		for (uint i = 0; i < m_numParticles; i++) {
 
-            int rango=colorVar(i, ptr);
+            int range=colorVar(i, ptr);
             ptr += 3;
-			switch(rango)
-			{
-			case 0:
-				if(displayLow)
-					*ptr++ = alpha;
-				else *ptr++ = 0;
-				break;
-			case 1:
-				if(displayMiddle)
-					*ptr++ = alpha;
-				else *ptr++ = 0;
-				break;
-			case 2:
-				if(displayHigh)
-					*ptr++ = alpha;
-				else *ptr++ = 0;
-				break;
-			}
+            switch (currentVariable) {
+            case VAR_TEMPERATURE:
+                if(colorsTemp[range].hidden)
+                    *ptr++=0;
+                else *ptr++=alpha;
+                break;
+            case VAR_PRESSURE:
+                if(colorsPress[range].hidden)
+                    *ptr++=0;
+                else *ptr++=alpha;
+                break;
+            case VAR_VELOCITY:
+                if(colorsVel[range].hidden)
+                    *ptr++=0;
+                else *ptr++=alpha;
+                break;
+            }
 
 		}
 	} else {

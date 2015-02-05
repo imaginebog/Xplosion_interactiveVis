@@ -2,7 +2,7 @@
 #include "ui_simului.h"
 #include <QDebug>
 #include <QThread>
-
+#include <QtWidgets>
 SimulUI::SimulUI(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::SimulUI)
@@ -226,6 +226,10 @@ void SimulUI::on_cbCurrentVar_currentIndexChanged(int index)
     }
     ui->scaleWidget->refreshLegend();
 }
+void SimulUI::updateSimulView()
+{
+    simulWid->refreshView();
+}
 
 void SimulUI::on_butResetView_clicked()
 {
@@ -244,4 +248,14 @@ void SimulUI::on_sliderTime_sliderReleased()
     float valor=ui->sliderTime->value();
     int nfram=valor*simulWid->getNumFrames()/100;
     simulWid->setCurrentFrame(nfram);
+}
+
+void SimulUI::on_pushButton_7_clicked()
+{
+    const QColor color = QColorDialog::getColor(Qt::green, this, "Select Color",0);//, options);
+    if (color.isValid()) {
+//        colorLabel->setText(color.name());
+//        colorLabel->setPalette(QPalette(color));
+//        colorLabel->setAutoFillBackground(true);
+    }
 }
