@@ -20,6 +20,7 @@ ColorValueDialog::ColorValueDialog(float val, QColor color):ColorValueDialog()
 void ColorValueDialog::handleAddButton()
 {
     valueDialog=valueEdit->text();
+    newValue= valueEdit->text().toFloat();
     colorDialog=colorLabel->text();
     accept();
 }
@@ -73,7 +74,8 @@ ColorValueDialog::ColorValueDialog(QWidget *parent)
 
 void ColorValueDialog::setColor()
 {
-    const QColor color = QColorDialog::getColor(Qt::green, this, "Select Color",0);//, options);
+    QColor* inicol=new QColor(colorLabel->text());
+    const QColor color = QColorDialog::getColor(inicol->rgba(), this, "Select Color",0);//, options);
     if (color.isValid()) {
         colorLabel->setText(color.name());
         colorLabel->setPalette(QPalette(color));

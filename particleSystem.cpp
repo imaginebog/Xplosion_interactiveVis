@@ -163,6 +163,68 @@ float ParticleSystem::getValue(float percentage)
         break;
     }
 }
+void ParticleSystem::editColorValue(int indexColorVal,float * newColor,float newValue)
+{
+    deleteColorValue(indexColorVal);
+    insertColorValue(newColor,newValue,currentVariable);
+}
+
+void ParticleSystem::toggleVisibility(int range)
+{
+    switch(currentVariable)
+    {
+    case VAR_TEMPERATURE:
+        colorsTemp[range].hidden=!colorsTemp[range].hidden;
+        break;
+    case VAR_PRESSURE:
+        colorsPress[range].hidden=!colorsPress[range].hidden;
+        break;
+    case VAR_VELOCITY:
+        colorsVel[range].hidden=!colorsVel[range].hidden;
+        break;
+    }
+}
+
+bool ParticleSystem::deleteColorValue(int indexColorVal)
+{
+    switch(currentVariable)
+    {
+    case VAR_TEMPERATURE:
+        if(indexColorVal<ncolorsTemp)
+        {
+            ncolorsTemp--;
+            for(int i=indexColorVal;i<ncolorsTemp;i++)
+            {
+                colorsTemp[i]=colorsTemp[i+1];
+            }
+            return true;
+        }
+        break;
+    case VAR_PRESSURE:
+        if(indexColorVal<ncolorsPress)
+        {
+            ncolorsPress--;
+            for(int i=indexColorVal;i<ncolorsPress;i++)
+            {
+                colorsPress[i]=colorsPress[i+1];
+            }
+            return true;
+        }
+        break;
+    case VAR_VELOCITY:
+        if(indexColorVal<ncolorsVel)
+        {
+            ncolorsVel--;
+            for(int i=indexColorVal;i<ncolorsVel;i++)
+            {
+                colorsVel[i]=colorsVel[i+1];
+            }
+            return true;
+        }
+        break;
+    }
+    return false;
+}
 
 void ParticleSystem::insertColorValue(float * newColor,float newValue, int indexVar)
 {

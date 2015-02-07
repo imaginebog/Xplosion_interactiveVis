@@ -972,7 +972,7 @@ void GLWidget::changeCurrentVar(int indexVar)
         displayMode = ParticleRenderer::PARTICLE_ARROWS;
     } else{
         psystem->reset(ParticleSystem::CONFIG_SIMULATION_DATA);
-        displayMode = ParticleRenderer::PARTICLE_SPHERES;
+        displayMode = ParticleRenderer::PARTICLE_FLAT_SPHERES;
     }
     update();
 }
@@ -1000,7 +1000,7 @@ void GLWidget::key(unsigned char k, int /*x*/, int /*y*/) {
             displayMode = ParticleRenderer::PARTICLE_ARROWS;
         } else {
             psystem->reset(ParticleSystem::CONFIG_SIMULATION_DATA);
-            displayMode = ParticleRenderer::PARTICLE_SPHERES;
+            displayMode = ParticleRenderer::PARTICLE_FLAT_SPHERES;
         }
         //refreshLegend();
 

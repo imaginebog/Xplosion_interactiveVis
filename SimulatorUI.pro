@@ -22,7 +22,8 @@ SOURCES += main.cpp\
     shaders.cpp \
     simului.cpp \
     gllegendwidget.cpp \
-    colorvaluedialog.cpp
+    colorvaluedialog.cpp \
+    admincolorsdialog.cpp
 
 HEADERS  += \
     glwidget.h \
@@ -35,7 +36,8 @@ HEADERS  += \
     particleSystem.cuh \
     simului.h \
     gllegendwidget.h \
-    colorvaluedialog.h
+    colorvaluedialog.h \
+    admincolorsdialog.h
 
 FORMS    += \
     simului.ui

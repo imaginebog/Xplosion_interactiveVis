@@ -38,45 +38,43 @@
 **
 ****************************************************************************/
 
-#ifndef FINDDIALOG_H
-#define FINDDIALOG_H
+#ifndef ADMINDIALOG_H
+#define ADMINDIALOG_H
 
 #include <QtWidgets>
+#include "particleSystem.h"
 
 QT_BEGIN_NAMESPACE
-class QCheckBox;
-class QDialogButtonBox;
-class QGroupBox;
 class QLabel;
 class QLineEdit;
 class QPushButton;
+class QComboBox;
 QT_END_NAMESPACE
 
 //! [0]
-class ColorValueDialog : public QDialog
+class AdminColorsDialog : public QDialog
 {
     Q_OBJECT
 
 public:
-    ColorValueDialog(QWidget *parent = 0);
-    ColorValueDialog(float val, QColor color);
+    AdminColorsDialog(QWidget *parent = 0);
+    AdminColorsDialog(ParticleSystem* psystem);
 
-
-    QString valueDialog;
-    QString colorDialog;
     float newValue;
-    QColor newColor;
+    QColor* newColor;
 private:
     QLabel *label;
+    QComboBox *colorvaluesCombobox;
     QLineEdit *valueEdit;
-    QLabel *label2;
-    QLabel *colorLabel;
-    QPushButton *addButton;
-    QPushButton *pickColorButton;
+    QLineEdit *colorEdit;
+    QPushButton *editButton;
+    QPushButton *deleteButton;
+    ParticleSystem* psystem;
+    void updateComboBox();
 
 private slots:
     void handleAddButton();
-    void setColor();
+    void deleteColor();
 
 };
 //! [0]

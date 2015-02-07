@@ -41,15 +41,16 @@
 // Particle system class
 class ParticleSystem {
 
+
+private:
+    void initConstants();
+public:
     struct ColorValue
     {
         float* colorRGB=(float*)calloc(3,sizeof(float));
         float value;
         bool hidden=false;//TODO set hidden according to UI
     };
-private:
-    void initConstants();
-public:
     ParticleSystem(bool bUseOpenGL);
 	~ParticleSystem();
 
@@ -81,8 +82,12 @@ public:
     ColorValue* colorsPress;
     ColorValue* colorsVel;
 
+    void toggleVisibility(int range);
+
     void loadColorConfiguration();
     void insertColorValue(float * newColor,float newValue, int indexVar);
+    bool deleteColorValue(int indexColorVal);
+    void editColorValue(int indexColorVal,float * newColor,float newValue);
 
 	enum FixedVariables {
 		VAR_TEMPERATURE, VAR_PRESSURE, VAR_VELOCITY, _NUM_VARIABLES
@@ -140,17 +145,21 @@ public:
             case VAR_VELOCITY: return ncolorsVel;
         }
     }
+    ColorValue* getColorValues()
+    {
+        switch(currentVariable)
+        {
+        case VAR_TEMPERATURE:
+            return colorsTemp;
+        case VAR_PRESSURE:
+            return colorsPress;
+        case VAR_VELOCITY:
+            return colorsVel;
+        }
+    }
 
 	float** getColorsScale()
-	{
-        /*
-		float** coloresScale=(float**)calloc(totalValuesScale,sizeof(float*));
-        coloresScale[0]=lowColor;
-		coloresScale[1]=gradientInitialColor;
-		coloresScale[2]=gradientFinalColor;
-		coloresScale[3]=highColor;
-		return coloresScale;
-        */
+    {
         float** colorsScale;
 
         switch(currentVariable)

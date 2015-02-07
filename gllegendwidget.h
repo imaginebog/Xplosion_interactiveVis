@@ -30,6 +30,8 @@ private:
     bool psysteminitialized;
     ParticleSystem *psystem;
     void paintColorBoxScale(const char *nameVar, float** colors,float* values,int length);
+    void paintRule();
+
 
     void paintText(QString str,float xStr,float yStr);
     float* parseColor(char* col);
@@ -38,6 +40,9 @@ private:
     float** coloresScale;
     float* valoresScale;
     const char* currentVarName;
+    void insertColorValue(QMouseEvent *event);
+    void toggleVisibility(QMouseEvent *event);
+    void editColorValues();
 };
 
 #endif // GLLEGENDWIDGET_H

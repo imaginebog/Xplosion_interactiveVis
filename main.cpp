@@ -15,9 +15,10 @@ int main(int argc, char *argv[])
 
     SimulUI wui;
     wui.setWindowTitle("Simulation dashboard");
-    wui.show();
-    wui.setSimulWindow(&w);
     wui.setSimulSystem(w.getSimulationSystem());
+    wui.setSimulWindow(&w);
+    wui.show();
     wui.setDefaults();
+    wui.setSimulSystem(w.getSimulationSystem());
     return a.exec();
 }
